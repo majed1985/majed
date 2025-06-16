@@ -1,6 +1,5 @@
 from django.test import TestCase
 from django.db import IntegrityError
-from django.contrib.auth.models import User
 
 from .models import (
     Learner,
@@ -20,7 +19,6 @@ class LearnerModelTest(TestCase):
         self.section = Section.objects.create(name="القسم", department=self.department)
         self.nationality = Nationality.objects.create(name="سعودي")
         self.sector = Sector.objects.create(name="القطاع")
-        self.manager = User.objects.create(username="manager")
 
     # دالة مساعدة لإنشاء متدرّب مع إمكانية تجاوز القيم الافتراضية
     def _create_learner(self, **kwargs):
@@ -33,7 +31,7 @@ class LearnerModelTest(TestCase):
             "section": self.section,
             "nationality": self.nationality,
             "sector": self.sector,
-            "manager": self.manager,
+            "manager": "مدير",
             "email": "unique@example.com",
             "national_id": "1234567890",
             "employee_number": "emp1",
@@ -75,10 +73,10 @@ class LearnerModelTest(TestCase):
 
     # ----------------- اختبارات العلاقات -----------------
 
-    def test_manager_is_user_instance(self):
-        """يجب أن يشير حقل المدير إلى كائن مستخدم فعلي."""
-        learner = self._create_learner()
-        self.assertEqual(learner.manager, self.manager)
+    def test_manager_saved_as_text(self):
+        """يجب حفظ اسم المدير كنص عادي."""
+        learner = self._create_learner(manager="مدير تنفيذي")
+        self.assertEqual(learner.manager, "مدير تنفيذي")
 
     def test_nationality_and_sector_relations(self):
         """يجب ربط الجنسية والقطاع بالكيانات المرجعية الصحيحة."""

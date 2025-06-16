@@ -29,7 +29,6 @@ def home(request):
 # ---------------------------------------------------------------------------
 def register(request):
     """تسجيل متدرّب جديد ثم إرسال رابط التفعيل إلى بريده الإلكتروني."""
-    managers = User.objects.all()
 
     if request.method == "POST":
         data = request.POST
@@ -69,7 +68,7 @@ def register(request):
         if errors:
             for err in errors:
                 messages.error(request, err)
-            return render(request, "core/register.html", {"managers": managers}, status=200)
+            return render(request, "core/register.html", status=200)
 
         # ---------------------------------------------------------------------
         # إنشاء المستخدم (مُعطَّل لحين التفعيل)
@@ -98,14 +97,7 @@ def register(request):
         if sectr_name:
             sector, _ = Sector.objects.get_or_create(name=sectr_name)
 
-        manager = None
-        manager_id = data.get("manager")
-        if manager_id:
-            try:
-                manager = User.objects.get(pk=manager_id)
-            except (User.DoesNotExist, ValueError):
-                messages.error(request, "المدير المباشر غير موجود")
-                manager = None
+        manager_name = data.get("manager", "").strip()
 
         # إنشاء سجل المتدرّب مع العلاقات المرجعية
         Learner.objects.create(
@@ -116,7 +108,7 @@ def register(request):
             employee_number=data["employee_number"],
             department=department,
             section=section,
-            manager=manager,
+            manager=manager_name,
             email=data["email"],
             mobile=data.get("mobile", ""),
             national_id=data.get("national_id", ""),
@@ -146,7 +138,7 @@ def register(request):
         return redirect("core:register_thanks")
 
     # GET
-    return render(request, "core/register.html", {"managers": managers})
+    return render(request, "core/register.html")
 
 
 # ---------------------------------------------------------------------------

@@ -107,14 +107,9 @@
           </div>
           <div>
             <label class="block mb-1 text-sm font-semibold">المدير المباشر</label>
-            <select name="manager"
-                    class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 text-gray-700 transition"
-                    required>
-              <option value="">اختر المدير</option>
-              {% for m in managers %}
-              <option value="{{ m.id }}">{{ m.get_full_name|default:m.username }}</option>
-              {% endfor %}
-            </select>
+            <input type="text" name="manager" placeholder="اسم المدير"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 placeholder-gray-500 transition"
+                   required>
           </div>
         </div>
         <div class="mt-10 flex justify-between">
