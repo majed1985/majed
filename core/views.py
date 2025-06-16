@@ -42,7 +42,6 @@ def register(request):
             "employee_number": "الرقم الوظيفي",
             "department": "الإدارة",
             "section": "القسم",
-            "manager": "المدير المباشر",
             "email": "البريد الإلكتروني",
             "password": "كلمة المرور",
             "confirm_password": "تأكيد كلمة المرور",
@@ -79,6 +78,33 @@ def register(request):
             is_active=False,
         )
 
+        # ----- حل الكيانات المرجعية بالأسماء --------------------------------
+        dept_name = data.get("department", "").strip()
+        sect_name = data.get("section", "").strip()
+        nat_name  = data.get("nationality", "").strip()
+        sectr_name= data.get("sector", "").strip()
+
+        department, _ = Department.objects.get_or_create(name=dept_name)
+        section, _ = Section.objects.get_or_create(
+            name=sect_name,
+            department=department,
+        )
+        nationality = None
+        if nat_name:
+            nationality, _ = Nationality.objects.get_or_create(name=nat_name)
+        sector = None
+        if sectr_name:
+            sector, _ = Sector.objects.get_or_create(name=sectr_name)
+
+        manager = None
+        manager_id = data.get("manager")
+        if manager_id:
+            try:
+                manager = User.objects.get(pk=manager_id)
+            except (User.DoesNotExist, ValueError):
+                messages.error(request, "المدير المباشر غير موجود")
+                manager = None
+
         # إنشاء سجل المتدرّب مع العلاقات المرجعية
         Learner.objects.create(
             first_name_ar=data["first_name_ar"],
@@ -86,16 +112,14 @@ def register(request):
             first_name_en=data["first_name_en"],
             last_name_en=data["last_name_en"],
             employee_number=data["employee_number"],
-            department=Department.objects.get(pk=data["department"]),
-            section=Section.objects.get(pk=data["section"]),
-            manager=User.objects.get(pk=data["manager"]),
+            department=department,
+            section=section,
+            manager=manager,
             email=data["email"],
             mobile=data.get("mobile", ""),
             national_id=data.get("national_id", ""),
-            nationality=Nationality.objects.get(pk=data["nationality"])
-            if data.get("nationality")
-            else None,
-            sector=Sector.objects.get(pk=data["sector"]) if data.get("sector") else None,
+            nationality=nationality,
+            sector=sector,
             user=user,
         )
 
