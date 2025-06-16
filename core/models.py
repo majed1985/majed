@@ -73,13 +73,11 @@ class Learner(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
     )
-    manager = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
+    manager = models.CharField(
+        "المدير المباشر",
+        max_length=50,
         null=True,
         blank=True,
-        related_name="managed_learners",
-        verbose_name="المدير المباشر",
     )
 
     # --- الخطوة 3: معلومات التواصل ---
