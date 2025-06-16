@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* يجعل الفوتر يثبت في الأسفل إذا كانت الصفحة قصيرة */
 body {
     display: flex;
@@ -9,3 +10,16 @@ body {
 main.page-content {
     flex: 1;
 }
+=======
+/* يجعل الفوتر يثبت في الأسفل إذا كانت الصفحة قصيرة */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+}
+
+main.page-content {
+    flex: 1;
+}
+>>>>>>> fefcbab3ba74fe1e50375ae2d8fb84f78fb632fe

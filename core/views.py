@@ -68,7 +68,6 @@ def register(request):
         if errors:
             for err in errors:
                 messages.error(request, err)
-            # إعادة نفس الصفحة بالحالة 200 لتمكين الاختبارات من فحص الرسائل
             return render(request, "core/register.html", status=200)
 
         # ---------------------------------------------------------------------

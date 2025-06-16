@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* === BASE / GLOBAL ================= */
 :root{
   --blue-dark:#072c52;
@@ -11,3 +12,18 @@ body{
   background:#fff;
   color:var(--blue-dark);
 }
+=======
+/* === BASE / GLOBAL ================= */
+:root{
+  --blue-dark:#072c52;
+  --blue-light:#118bff;
+  --text-light:#fff;
+}
+
+body{
+  font-family:'Tajawal',Arial,sans-serif;
+  margin:0;
+  background:#fff;
+  color:var(--blue-dark);
+}
+>>>>>>> fefcbab3ba74fe1e50375ae2d8fb84f78fb632fe
