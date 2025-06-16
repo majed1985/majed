@@ -1,0 +1,13 @@
+/* === BASE / GLOBAL ================= */
+:root{
+  --blue-dark:#072c52;
+  --blue-light:#118bff;
+  --text-light:#fff;
+}
+
+body{
+  font-family:'Tajawal',Arial,sans-serif;
+  margin:0;
+  background:#fff;
+  color:var(--blue-dark);
+}

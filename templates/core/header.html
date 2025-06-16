@@ -1,0 +1,82 @@
+{% load static %}
+<section class="header-bar">
+  <div class="header-container">
+    <!-- يسار -->
+    <img src="{% static 'images/logo_ld_en.png' %}" alt="SBG L&D" class="logo left">
+
+    <!-- منتصف -->
+    <div class="title-block">
+      <h1 class="title-ar">إدارة التعلم والتطوير</h1>
+      <p class="title-en">Learning &amp; Development Management</p>
+    </div>
+
+    <!-- يمين -->
+    <img src="{% static 'images/logo_sbg.png' %}" alt="Saudi Binladin Group" class="logo right">
+  </div>
+</section>
+
+<style>
+  /* === COMPONENT ▸ HEADER BAR ======== */
+  .header-bar {
+    background: #fff;       /* خلفية بيضاء خالصة */
+    padding: 8px 0;         /* تباعد علوي/سفلي مصغَّر */
+  }
+
+  .header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: flex-start;   /* رفع العناصر إلى الأعلى */
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .logo {
+    max-height: 120px;     
+    height: auto;
+    width: auto;
+  }
+
+  .logo.left {
+    margin-right: -60px;      
+  }
+
+  .logo.right {
+    margin-left: -70px;       
+  }
+
+  .title-block {
+    text-align: center;
+    flex: 1;                  
+    margin-top: -3px;         
+  }
+
+  .title-ar {
+    margin: 0;
+    font-size: 55px;
+    font-weight: 700;
+    color: var(--blue-dark);
+  }
+
+  .title-en {
+    margin: -8px 0 0;         
+    font-size: 20px;
+    font-weight: 600;
+    color: #009c58;           
+  }
+
+  @media (max-width: 768px) {
+    .header-container {
+      flex-direction: column;
+      align-items: center;    
+      gap: 12px;
+    }
+    .title-ar {
+      font-size: 26px;
+    }
+    .title-en {
+      margin: 4px 0 0;        
+    }
+  }
+</style>

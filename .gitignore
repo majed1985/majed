@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.so
+*.log
+db.sqlite3
+venv/
+.env
+*.egg-info/
+*.coverage
+*.mypy_cache/
+node_modules/
+.idea/
+.vscode/
