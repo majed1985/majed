@@ -1,36 +1,9 @@
-<<<<<<< HEAD
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a//dev/null b/templates/core/activation_invalid.html
-index 0000000000000000000000000000000000000000..9861b51284df2ccc16e52d527e7aba18a9de451b 100644
---- a//dev/null
-+++ b/templates/core/activation_invalid.html
-@@ -0,0 +1,9 @@
-+{% extends 'base.html' %}
-+
-+{% block title %}رابط غير صالح | MajedLearn{% endblock %}
-+
-+{% block content %}
-+<div class="text-center py-10 text-red-600">
-+    الرابط غير صالح أو تم استخدامه مسبقاً.
-+</div>
-+{% endblock %}
- 
-=======
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a//dev/null b/templates/core/activation_invalid.html
-index 0000000000000000000000000000000000000000..9861b51284df2ccc16e52d527e7aba18a9de451b 100644
---- a//dev/null
-+++ b/templates/core/activation_invalid.html
-@@ -0,0 +1,9 @@
-+{% extends 'base.html' %}
-+
-+{% block title %}رابط غير صالح | MajedLearn{% endblock %}
-+
-+{% block content %}
-+<div class="text-center py-10 text-red-600">
-+    الرابط غير صالح أو تم استخدامه مسبقاً.
-+</div>
-+{% endblock %}
- 
->>>>>>> fefcbab3ba74fe1e50375ae2d8fb84f78fb632fe
-)
+{% extends 'base.html' %}
+
+{% block title %}رابط غير صالح | MajedLearn{% endblock %}
+
+{% block content %}
+<div class="text-center py-10 text-red-600">
+    الرابط غير صالح أو تم استخدامه مسبقاً.
+</div>
+{% endblock %}
