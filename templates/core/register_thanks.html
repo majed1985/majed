@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}تم التسجيل | MajedLearn{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-container flex flex-col items-center justify-center text-center py-8" style="margin-top: -100px;">
+
+    <h2 class="hero-title mb-4" style="color: #009c58;">
+      ✅ تم إنشاء الحساب بنجاح
+    </h2>
+
+    <p class="hero-subtitle mb-4" style="font-size: 20px; color: #072c52;">
+      تم إرسال رسالة تفعيل إلى بريدك الإلكتروني. يرجى التحقق من الرسالة واتباع التعليمات لتفعيل الحساب.
+    </p>
+
+    <p class="hero-subtitle mb-6" style="font-size: 20px; color: #072c52;">
+      شكرًا لانضمامك إلى منصتنا التعليمية!
+    </p>
+
+    <a href="{% url 'core:home' %}" class="btn btn-primary">
+      العودة إلى الصفحة الرئيسية
+    </a>
+
+  </div>
+</section>
+{% endblock %}

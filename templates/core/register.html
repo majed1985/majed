@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تسجيل جديد | MajedLearn{% endblock %}
+
+{% block content %}
+<div class="w-full flex items-start justify-center bg-white px-4 py-2">
+  <div class="w-full max-w-4xl px-10 py-12 bg-white rounded-2xl" style="margin-top: -50px;">
+
+
+    <!-- ✅ شريط التقدم -->
+    <ul class="flex justify-center gap-6 mb-10 text-sm font-semibold text-gray-400">
+      <li class="step-indicator flex flex-col items-center">
+        <span class="step-number w-9 h-9 rounded-full text-center leading-9 font-bold text-white bg-gray-300">1</span>
+        <span class="mt-2 text-center">المعلومات الشخصية</span>
+      </li>
+      <li class="step-indicator flex flex-col items-center">
+        <span class="step-number w-9 h-9 rounded-full text-center leading-9 font-bold text-white bg-gray-300">2</span>
+        <span class="mt-2 text-center">المعلومات الوظيفية</span>
+      </li>
+      <li class="step-indicator flex flex-col items-center">
+        <span class="step-number w-9 h-9 rounded-full text-center leading-9 font-bold text-white bg-gray-300">3</span>
+        <span class="mt-2 text-center">معلومات التواصل</span>
+      </li>
+      <li class="step-indicator flex flex-col items-center">
+        <span class="step-number w-9 h-9 rounded-full text-center leading-9 font-bold text-white bg-gray-300">4</span>
+        <span class="mt-2 text-center">إنشاء الحساب</span>
+      </li>
+    </ul>
+       <!-- ✅ رسالة الخطأ إذا وجدت -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="mb-4 text-center text-red-600 font-bold text-lg">
+          ⚠️ {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    {# احتفظت بالشرط القديم للمتغيّر error تحسّبًا، احذفه إن لم تعد تستخدمه #}
+    {# 
+    {% if error %}
+      <div class="mb-4 text-center text-red-600 font-bold text-lg">
+        ⚠️ {{ error }}
+      </div>
+    {% endif %}
+    #}
+
+    <!-- ✅ رسالة النجاح -->
+    <div id="success-message"
+         class="hidden text-center text-green-600 text-lg font-semibold mb-6 transition-all duration-500 ease-in-out animate-bounce-in">
+      ✅ تم إرسال بياناتك بنجاح! سيتم مراجعتها خلال 24 ساعة.
+    </div>
+
+    <!-- ✅ نموذج التسجيل -->
+    <form id="registration-form" method="post" action="">
+      {% csrf_token %}
+
+      <!-- step 1 -->
+      <div class="form-step block transition-all duration-500 ease-in-out">
+        <h2 class="text-2xl text-center font-bold text-blue-900 mb-6 pb-2 border-b">✏️ المعلومات الشخصية</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block mb-1 font-semibold text-sm text-gray-700">الاسم الأول (بالعربية)</label>
+            <input type="text" name="first_name_ar" placeholder="مثال: أحمد"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 placeholder-gray-500 transition"
+                   required>
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold text-sm text-gray-700">اسم العائلة (بالعربية)</label>
+            <input type="text" name="last_name_ar" placeholder="مثال: الغامدي"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 placeholder-gray-500 transition"
+                   required>
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold text-sm text-gray-700">First Name (English)</label>
+            <input type="text" name="first_name_en" placeholder="e.g. Ahmed"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 placeholder-gray-500 transition"
+                   required>
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold text-sm text-gray-700">Last Name (English)</label>
+            <input type="text" name="last_name_en" placeholder="e.g. Alghamdi"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 placeholder-gray-500 transition"
+                   required>
+          </div>
+        </div>
+
+        <div class="mt-10 flex justify-end">
+          <button type="button"
+                  class="btn-next bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition text-lg">
+            التالي
+          </button>
+        </div>
+      </div>
+
+      <!-- step 2 -->
+      <div class="form-step hidden transition-all duration-500 ease-in-out">
+        <h2 class="text-2xl text-center font-bold text-blue-900 mb-6 pb-2 border-b">🧾 المعلومات الوظيفية</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block mb-1 text-sm font-semibold">الرقم الوظيفي</label>
+            <input type="text" name="employee_number" placeholder="123456"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 placeholder-gray-500 transition"
+                   required>
+          </div>
+          <div>
+            <label class="block mb-1 text-sm font-semibold">الإدارة</label>
+            <input type="text" name="department" placeholder="الموارد البشرية"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 placeholder-gray-500 transition"
+                   required>
+          </div>
+          <div>
+            <label class="block mb-1 text-sm font-semibold">القسم</label>
+            <input type="text" name="section" placeholder="التوظيف"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 placeholder-gray-500 transition"
+                   required>
+          </div>
+          <div>
+            <label class="block mb-1 text-sm font-semibold">المدير المباشر</label>
+            <input type="text" name="manager" placeholder="محمد السالم"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 placeholder-gray-500 transition"
+                   required>
+          </div>
+        </div>
+
+        <div class="mt-10 flex justify-between">
+          <button type="button"
+                  class="btn-prev bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg shadow-md transition text-lg">
+            السابق
+          </button>
+          <button type="button"
+                  class="btn-next bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition text-lg">
+            التالي
+          </button>
+        </div>
+      </div>
+
+      <!-- step 3 -->
+      <div class="form-step hidden transition-all duration-500 ease-in-out">
+        <h2 class="text-2xl text-center font-bold text-blue-900 mb-6 pb-2 border-b">📞 معلومات التواصل</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block mb-1 text-sm font-semibold">البريد الإلكتروني</label>
+            <input type="email" name="email" id="email" placeholder="example@sbg.com.sa"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 placeholder-gray-500 transition"
+                   required>
+          </div>
+          <div>
+            <label class="block mb-1 text-sm font-semibold">رقم الجوال</label>
+            <input type="tel" name="mobile" placeholder="05XXXXXXXX"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 placeholder-gray-500 transition"
+                   required>
+          </div>
+          <div>
+            <label class="block mb-1 text-sm font-semibold">رقم الهوية</label>
+            <input type="text" name="national_id" placeholder="10 أرقام"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 placeholder-gray-500 transition"
+                   required>
+          </div>
+          <div>
+            <label class="block mb-1 text-sm font-semibold">الجنسية</label>
+            <select name="nationality"
+                    class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 text-gray-700 transition"
+                    required>
+              <option value="">اختر</option>
+              <option>سعودي</option>
+              <option>غير سعودي</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-1 text-sm font-semibold">القطاع</label>
+            <select name="sector"
+                    class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 text-gray-700 transition"
+                    required>
+              <option value="">اختر</option>
+              <option>حرمين</option>
+              <option>غير حرمين</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mt-10 flex justify-between">
+          <button type="button"
+                  class="btn-prev bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg shadow-md transition text-lg">
+            السابق
+          </button>
+          <button type="button"
+                  class="btn-next bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition text-lg">
+            التالي
+          </button>
+        </div>
+      </div>
+
+      <!-- step 4 -->
+      <div class="form-step hidden transition-all duration-500 ease-in-out">
+        <h2 class="text-2xl text-center font-bold text-blue-900 mb-6 pb-2 border-b">🔒 إنشاء الحساب</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block mb-1 font-semibold text-sm text-gray-700">اسم المستخدم (البريد الإلكتروني)</label>
+            <input type="text" name="username" id="username"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 bg-gray-100"
+                   readonly>
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold text-sm text-gray-700">كلمة المرور</label>
+            <input type="password" name="password"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 placeholder-gray-500 transition"
+                   required>
+          </div>
+          <div>
+            <label class="block mb-1 font-semibold text-sm text-gray-700">تأكيد كلمة المرور</label>
+            <input type="password" name="confirm_password"
+                   class="w-full border-2 border-gray-300 rounded-lg px-4 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-300 placeholder-gray-500 transition"
+                   required>
+          </div>
+        </div>
+
+        <div class="mt-10 flex justify-between">
+          <button type="button"
+                  class="btn-prev bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg shadow-md transition text-lg">
+            السابق
+          </button>
+          <button type="submit" id="submit-btn"
+                  class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow-md transition text-lg">
+            إنشاء الحساب
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<style>
+  /* تأثير الرسالة */
+  .animate-bounce-in {
+    animation: bounce-in 0.8s ease forwards;
+  }
+  @keyframes bounce-in {
+    0% { transform: translateY(-20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  /* تلوين مراحل شريط التقدم */
+  .step-indicator .step-number { background-color: #d1d5db; color: #1f2937; }
+  .step-indicator.active .step-number { background-color: #1d4ed8; color: #ffffff; }
+  .step-indicator.active span { color: #1d4ed8; }
+</style>
+
+<script>
+  const steps        = document.querySelectorAll('.form-step');
+  const nextBtns     = document.querySelectorAll('.btn-next');
+  const prevBtns     = document.querySelectorAll('.btn-prev');
+  const indicators   = document.querySelectorAll('.step-indicator');
+  const form         = document.getElementById('registration-form');
+  const successMsg   = document.getElementById('success-message');
+  const submitBtn    = document.getElementById('submit-btn');
+  const usernameFld  = document.getElementById('username');
+  const emailInput   = document.getElementById('email');
+
+  let currentStep = 0;
+
+  function updateSteps() {
+    steps.forEach((step, i) => {
+      step.classList.toggle('hidden', i !== currentStep);
+      indicators[i].classList.toggle('active', i === currentStep);
+    });
+  }
+
+  nextBtns.forEach(btn => btn.addEventListener('click', () => {
+    const inputs = steps[currentStep].querySelectorAll('input, select');
+    for (let input of inputs) {
+      if (!input.checkValidity()) { input.reportValidity(); return; }
+    }
+    if (currentStep < steps.length - 1) { currentStep++; updateSteps(); }
+  }));
+
+  prevBtns.forEach(btn => btn.addEventListener('click', () => {
+    if (currentStep > 0) { currentStep--; updateSteps(); }
+  }));
+
+  /* توليد اسم المستخدم من البريد */
+  emailInput.addEventListener('input', () => { usernameFld.value = emailInput.value.trim(); });
+
+  form.addEventListener('submit', e => {
+  // تحقق فقط دون منع الإرسال
+  const email        = emailInput.value.trim();
+  const nationalId   = form.national_id.value.trim();
+  const password     = form.password.value.trim();
+  const confirmPass  = form.confirm_password.value.trim();
+
+  const emailPattern      = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const nationalIdPattern = /^\d{10}$/;
+
+  if (!emailPattern.test(email))           { e.preventDefault(); alert('يرجى إدخال بريد إلكتروني صحيح.'); return; }
+  if (!nationalIdPattern.test(nationalId)) { e.preventDefault(); alert('رقم الهوية يجب أن يتكون من 10 أرقام.'); return; }
+  if (password !== confirmPass)            { e.preventDefault(); alert('كلمتا المرور غير متطابقتين.'); return; }
+
+  // لا تضع setTimeout ولا successMsg هنا نهائيًا
+});
+
+
+  updateSteps();
+</script>
+{% endblock %}

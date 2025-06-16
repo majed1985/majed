@@ -1,0 +1,150 @@
+{% load static %}
+
+<!-- ✅ HERO SECTION -->
+<section class="hero">
+  <div class="hero-container">
+
+    <!-- ✅ العنوان -->
+    <div class="hero-content">
+      <h2 class="hero-subtitle">مرحبًا بك في منصة إدارة التعلم والتطوير</h2>
+      <h1 class="hero-title">تعلّم الآن، وكن قائدًا للمستقبل</h1>
+    </div>
+
+    <!-- ✅ الأزرار -->
+    <div class="hero-actions">
+      {% if not request.user.is_authenticated %}
+        <a href="{% url 'core:register' %}" class="btn btn-primary" aria-label="تسجيل حساب جديد">
+          <i class="fa-solid fa-user-plus"></i>
+          تسجيل جديد
+        </a>
+
+        <a href="{% url 'core:login' %}" class="btn btn-secondary" aria-label="تسجيل الدخول">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          تسجيل دخول
+        </a>
+      {% else %}
+        <form action="{% url 'core:logout' %}" method="post" style="display: inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-secondary no-custom-font" aria-label="تسجيل الخروج">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            تسجيل خروج
+          </button>
+        </form>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+
+<style>
+  :root {
+    --blue-dark: #072c52;
+    --text-light: #ffffff;
+  }
+
+  .hero {
+    padding: 64px 24px 24px;
+    background: #fff;
+  }
+
+  .hero-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 48px;
+    flex-wrap: wrap;
+  }
+
+  .hero-content {
+    flex: 2;
+    /* ✅ هنا تحكم المحاذاة: right - center - left */
+    text-align: right;
+    /* ✅ وللتحريك يمين أو يسار يمكن استخدام margin */
+    margin-right: -20px;  /* زِد أو نقص لتحريك الجمل يمين */
+    /* margin-left: 50px;  لو تفضل تحريكها يسار */
+  }
+
+  .hero-subtitle {
+    margin: 0;
+    font-size: 20px;
+    color: var(--blue-dark);
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+  }
+
+  .hero-title {
+    margin: 8px 0 0;
+    font-size: 48px;
+    font-weight: 700;
+    color: #009c58;
+    white-space: nowrap;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+  }
+
+  .hero-actions {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .hero-actions .btn {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 270px;
+    padding: 12px 0;
+    border-radius: 5px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    margin: 0 auto;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+  }
+
+  .hero-actions .btn i {
+    font-size: 1em;
+    width: 1em;
+    line-height: 1;
+  }
+
+  .btn-primary {
+    background: var(--blue-dark);
+    color: var(--text-light);
+    font-size: 1.5em;
+  }
+
+  .btn-secondary {
+    background: var(--blue-dark);
+    color: var(--text-light);
+    font-size: 1.5em;
+  }
+
+  .no-custom-font {
+    font-family: inherit !important;
+  }
+
+  @media (max-width: 768px) {
+    .hero-container {
+      flex-direction: column-reverse;
+      gap: 32px;
+    }
+    .hero-content {
+      text-align: center;
+      margin: 0; /* ألغِ التحريك في الشاشات الصغيرة */
+    }
+    .hero-title {
+      font-size: 36px;
+      white-space: normal;
+    }
+    .hero-actions .btn {
+      width: 100%;
+      justify-content: center;
+      padding: 8px;
+    }
+  }
+</style>

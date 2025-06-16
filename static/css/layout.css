@@ -1,0 +1,11 @@
+/* يجعل الفوتر يثبت في الأسفل إذا كانت الصفحة قصيرة */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+}
+
+main.page-content {
+    flex: 1;
+}
