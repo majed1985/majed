@@ -29,6 +29,8 @@ def home(request):
 # ---------------------------------------------------------------------------
 def register(request):
     """تسجيل متدرّب جديد ثم إرسال رابط التفعيل إلى بريده الإلكتروني."""
+    managers = User.objects.all()
+
     if request.method == "POST":
         data = request.POST
         errors = []
@@ -67,7 +69,7 @@ def register(request):
         if errors:
             for err in errors:
                 messages.error(request, err)
-            return render(request, "core/register.html", status=200)
+            return render(request, "core/register.html", {"managers": managers}, status=200)
 
         # ---------------------------------------------------------------------
         # إنشاء المستخدم (مُعطَّل لحين التفعيل)
@@ -144,7 +146,7 @@ def register(request):
         return redirect("core:register_thanks")
 
     # GET
-    return render(request, "core/register.html")
+    return render(request, "core/register.html", {"managers": managers})
 
 
 # ---------------------------------------------------------------------------
