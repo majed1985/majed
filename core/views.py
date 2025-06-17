@@ -12,7 +12,13 @@ from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
 import re
 
-from .models import Learner, Nationality, Sector
+from .models import (
+    Learner,
+    Nationality,
+    Sector,
+    Department,
+    Section,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -79,14 +85,23 @@ def register(request):
             is_active=False,
         )
 
-        # ----- حقل الإدارة والقسم نصياً --------------------------------------
+        # ----- حفظ الإدارة والقسم كعلاقات فعلية --------------------------------
         dept_name = data.get("department", "").strip()
         sect_name = data.get("section", "").strip()
         nat_name  = data.get("nationality", "").strip()
         sectr_name= data.get("sector", "").strip()
 
-        department = dept_name or None
-        section    = sect_name or None
+        department = None
+        if dept_name:
+            department, _ = Department.objects.get_or_create(name=dept_name)
+
+        section = None
+        if sect_name and department:
+            section, _ = Section.objects.get_or_create(
+                name=sect_name,
+                department=department,
+            )
+
         nationality = None
         if nat_name:
             nationality, _ = Nationality.objects.get_or_create(name=nat_name)
