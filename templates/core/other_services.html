@@ -4,7 +4,6 @@
 
 {% block content %}
 <div class="services-container">
-  <h2 class="services-title">خدمات المنصة</h2>
   <div class="services-grid">
     <a href="{% url 'core:service_page' service='needs_analysis' %}" class="service-card">
       <div class="service-icon"><i class="fas fa-search"></i></div>
@@ -43,21 +42,13 @@
 
 <style>
 .services-container {
-  max-width: 1100px;
-  margin: 40px auto 0 auto;
-  padding: 0 10px 30px 10px;
+  width: 100%;
+  margin: 0;
+  padding: 20px 0 30px;
   background: #fff;
   border-radius: 18px;
-  box-shadow: 0 4px 22px #08347d13;
 }
 
-.services-title {
-  font-size: 2rem;
-  color: #002366;
-  font-weight: bold;
-  margin-bottom: 24px;
-  text-align: center;
-}
 
 /* شبكة الكروت */
 .services-grid {
