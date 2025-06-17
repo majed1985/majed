@@ -27,6 +27,7 @@ def copy_names_to_fk(apps, schema_editor):
         learner.save(update_fields=["department_tmp", "section_tmp"])
 
 class Migration(migrations.Migration):
+    atomic = False
     dependencies = [
         ('core', '0007_department_section_charfields'),
     ]
