@@ -3,8 +3,6 @@ from django.db import IntegrityError
 
 from .models import (
     Learner,
-    Department,
-    Section,
     Nationality,
     Sector,
 )
@@ -15,8 +13,8 @@ class LearnerModelTest(TestCase):
 
     def setUp(self):
         # كيانات مرجعية أساسية يستخدمها كل اختبار
-        self.department = Department.objects.create(name="الإدارة")
-        self.section = Section.objects.create(name="القسم", department=self.department)
+        self.department = "الإدارة"
+        self.section = "القسم"
         self.nationality = Nationality.objects.create(name="سعودي")
         self.sector = Sector.objects.create(name="القطاع")
 
