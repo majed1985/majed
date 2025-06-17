@@ -2,7 +2,7 @@
 from django import forms
 from django.contrib.auth.models import User
 
-from .models import Learner, Department, Section, Nationality, Sector
+from .models import Learner, Nationality, Sector
 
 
 # ـــــــ الخطوة 1: المعلومات الشخصية ـــــــ #
