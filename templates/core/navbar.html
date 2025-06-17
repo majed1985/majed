@@ -7,7 +7,7 @@
     <li><a href="#">الدورات التدريبية</a></li>
     <li><a href="#">محاضرات تثقيفية</a></li>
     <li><a href="#">مسارات التعلم</a></li>
-    <li><a href="#">خدمات أخرى</a></li>
+    <li><a href="{% url 'core:other_services' %}">خدمات أخرى</a></li>
   </ul>
 
   {% if request.user.is_authenticated %}

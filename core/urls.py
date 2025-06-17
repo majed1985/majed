@@ -52,5 +52,9 @@ urlpatterns = [
         ),
         name="password_reset_complete",
     ),
+
+    # ✅ صفحة الخدمات الأخرى وكروت الخدمات
+    path("other-services/", views.other_services, name="other_services"),
+    path("service/<str:service>/", views.service_page, name="service_page"),
 ]
 
