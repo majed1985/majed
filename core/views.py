@@ -190,3 +190,28 @@ def login_view(request):
         messages.error(request, "اسم المستخدم أو كلمة المرور غير صحيحة")
 
     return render(request, "core/login.html", {"form": form})
+
+
+# ---------------------------------------------------------------------------
+def other_services(request):
+    """عرض صفحة الخدمات الأخرى مع كروت الخدمات."""
+    return render(request, "core/other_services.html")
+
+
+# ---------------------------------------------------------------------------
+def service_page(request, service):
+    """عرض صفحة خدمة معينة بناءً على الاسم الممرر."""
+    service_names = {
+        "needs_analysis": "تحليل الاحتياجات التدريبية",
+        "share_knowledge": "شاركنا المعرفة",
+        "youtube_tracks": "مسارات دورات اليوتيوب",
+        "skills_program": "برنامج مهارات",
+        "articles": "مقالات",
+        "my_certificates": "شهاداتي",
+        "course_announcements": "إعلانات الدورات التدريبية",
+        "cooperative_training": "التدريب التعاوني",
+    }
+
+    name = service_names.get(service, service)
+    context = {"service_name": name}
+    return render(request, "core/service_page.html", context)

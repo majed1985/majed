@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}الخدمات الأخرى{% endblock %}
+
+{% block content %}
+<div class="services-container">
+  <h2 class="services-title">خدمات المنصة</h2>
+  <div class="services-grid">
+    <a href="{% url 'core:service_page' service='needs_analysis' %}" class="service-card">
+      <div class="service-icon"><i class="fas fa-search"></i></div>
+      <div class="service-name">تحليل الاحتياجات التدريبية</div>
+    </a>
+    <a href="{% url 'core:service_page' service='share_knowledge' %}" class="service-card">
+      <div class="service-icon"><i class="fas fa-share-alt"></i></div>
+      <div class="service-name">شاركنا المعرفة</div>
+    </a>
+    <a href="{% url 'core:service_page' service='youtube_tracks' %}" class="service-card">
+      <div class="service-icon"><i class="fab fa-youtube"></i></div>
+      <div class="service-name">مسارات دورات اليوتيوب</div>
+    </a>
+    <a href="{% url 'core:service_page' service='skills_program' %}" class="service-card">
+      <div class="service-icon"><i class="fas fa-lightbulb"></i></div>
+      <div class="service-name">برنامج مهارات</div>
+    </a>
+    <a href="{% url 'core:service_page' service='articles' %}" class="service-card">
+      <div class="service-icon"><i class="fas fa-book-open"></i></div>
+      <div class="service-name">مقالات</div>
+    </a>
+    <a href="{% url 'core:service_page' service='my_certificates' %}" class="service-card">
+      <div class="service-icon"><i class="fas fa-certificate"></i></div>
+      <div class="service-name">شهاداتي</div>
+    </a>
+    <a href="{% url 'core:service_page' service='course_announcements' %}" class="service-card">
+      <div class="service-icon"><i class="fas fa-bullhorn"></i></div>
+      <div class="service-name">إعلانات الدورات التدريبية</div>
+    </a>
+    <a href="{% url 'core:service_page' service='cooperative_training' %}" class="service-card">
+      <div class="service-icon"><i class="fas fa-users"></i></div>
+      <div class="service-name">التدريب التعاوني</div>
+    </a>
+  </div>
+</div>
+
+<style>
+.services-container {
+  text-align: center;
+}
+.services-title {
+  @apply text-3xl font-bold text-blue-900 mb-8;
+}
+.services-grid {
+  @apply grid gap-6 md:grid-cols-2 lg:grid-cols-3;
+}
+.service-card {
+  @apply flex flex-col items-center justify-center border border-gray-200 rounded-lg p-6 transition-transform hover:shadow-lg hover:-translate-y-1;
+  background-color: #fff;
+}
+.service-icon {
+  @apply text-4xl text-blue-600 mb-3;
+}
+.service-name {
+  @apply font-semibold text-blue-900;
+}
+</style>
+{% endblock %}
