@@ -59,17 +59,19 @@ class Learner(models.Model):
         blank=True,
         db_index=True,
     )
-    department = models.CharField(
-        "الإدارة",
-        max_length=50,
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        verbose_name="الإدارة",
     )
-    section = models.CharField(
-        "القسم",
-        max_length=50,
+    section = models.ForeignKey(
+        Section,
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
+        verbose_name="القسم",
     )
     manager = models.CharField(
         "المدير المباشر",

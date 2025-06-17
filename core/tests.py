@@ -5,6 +5,8 @@ from .models import (
     Learner,
     Nationality,
     Sector,
+    Department,
+    Section,
 )
 
 
@@ -13,8 +15,8 @@ class LearnerModelTest(TestCase):
 
     def setUp(self):
         # كيانات مرجعية أساسية يستخدمها كل اختبار
-        self.department = "الإدارة"
-        self.section = "القسم"
+        self.department = Department.objects.create(name="الإدارة")
+        self.section = Section.objects.create(name="القسم", department=self.department)
         self.nationality = Nationality.objects.create(name="سعودي")
         self.sector = Sector.objects.create(name="القطاع")
 
