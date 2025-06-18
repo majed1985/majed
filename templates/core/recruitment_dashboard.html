@@ -7,6 +7,10 @@
 {% block content %}
 <div class="recruitment-container">
   <div class="recruitment-grid">
+    <a href="{% url 'core:upload_employees' %}" class="recruitment-card">
+      <div class="recruitment-icon"><i class="fas fa-users"></i></div>
+      <div class="recruitment-name">رفع كشف الموظفين</div>
+    </a>
     <a href="{% url 'core:recruitment_step' 'forms' %}" class="recruitment-card">
       <div class="recruitment-icon"><i class="fas fa-file-alt"></i></div>
       <div class="recruitment-name">إصدار نماذج التقييم</div>
