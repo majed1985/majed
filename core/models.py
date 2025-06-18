@@ -126,3 +126,64 @@ class Learner(models.Model):
     def __str__(self) -> str:
         return f"{self.first_name_ar} {self.last_name_ar}"
 
+
+class RecruitmentEmployee(models.Model):
+    """موظفو الاستقدام الحديث المستوردون من ملفات Excel."""
+
+    name = models.CharField("الاسم", max_length=100)
+    nationality = models.CharField("الجنسية", max_length=50)
+    official_job = models.CharField("المهنة الرسمية", max_length=100)
+    actual_job = models.CharField("المهنة الفعلية", max_length=100)
+    computer_number = models.CharField("رقم الكمبيوتر", max_length=50)
+    project_name = models.CharField("اسم المشروع", max_length=100)
+    start_date = models.DateField("تاريخ المباشرة")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "موظف استقدام"
+        verbose_name_plural = "موظفو الاستقدام"
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class EmployeeEvaluation(models.Model):
+    """تقييم موظف الاستقدام بعد المحاضرة التعريفية والتقييم العملي."""
+
+    employee = models.ForeignKey(
+        RecruitmentEmployee,
+        on_delete=models.CASCADE,
+        related_name="evaluations",
+        verbose_name="الموظف",
+    )
+    appearance_score = models.PositiveSmallIntegerField("المظهر")
+    experience_score = models.PositiveSmallIntegerField("الخبرة")
+    skills_score = models.PositiveSmallIntegerField("المهارات الفنية")
+    notes = models.TextField("ملاحظات", blank=True)
+    evaluator = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        verbose_name="المقيّم",
+    )
+    evaluation_photo = models.ImageField(
+        upload_to="evaluation_photos/",
+        null=True,
+        blank=True,
+        verbose_name="صورة التقييم",
+    )
+    orientation_photo = models.ImageField(
+        upload_to="orientation_photos/",
+        null=True,
+        blank=True,
+        verbose_name="صورة المحاضرة",
+    )
+    evaluated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "تقييم موظف"
+        verbose_name_plural = "تقييمات الموظفين"
+
+    def __str__(self) -> str:
+        return f"{self.employee.name} - {self.evaluator}" if self.evaluator else self.employee.name
+

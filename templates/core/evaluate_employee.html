@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}تقييم الموظف{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-bold mb-4">تقييم {{ employee.name }}</h1>
+<form method="post" enctype="multipart/form-data" class="space-y-4">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">حفظ</button>
+</form>
+{% endblock %}
