@@ -21,7 +21,7 @@
         <thead>
           <tr>
             <th class="px-2">الاسم</th>
-            <th class="px-2">المشروع</th>
+            <th class="px-2">الرقم الوظيفي</th>
             <th class="px-2">التاريخ</th>
             <th class="px-2">حرمين؟</th>
             <th class="px-2">الدرجة النهائية</th>
@@ -31,7 +31,7 @@
           {% for emp in day.employees %}
           <tr>
             <td class="px-2">{{ emp.name }}</td>
-            <td class="px-2">{{ emp.project_name }}</td>
+            <td class="px-2">{{ emp.employee_number }}</td>
             <td class="px-2">{{ emp.start_date }}</td>
             <td class="px-2">{{ emp.is_haramain|yesno:"نعم,لا" }}</td>
             <td class="px-2">

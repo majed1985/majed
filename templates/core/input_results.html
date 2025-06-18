@@ -49,7 +49,7 @@
       {% for emp in employees %}
       <tr>
         <td class="px-2 text-center">{{ forloop.counter }}</td>
-        <td class="px-2">{{ emp.employee_number|default:emp.computer_number }}</td>
+        <td class="px-2">{{ emp.employee_number }}</td>
         <td class="px-2">{{ emp.name }}</td>
         <td class="px-2">{{ emp.name_en }}</td>
         <td class="px-2">{{ emp.passport_number }}</td>

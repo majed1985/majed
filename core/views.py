@@ -258,14 +258,20 @@ def upload_employees(request):
                 if not any(pd.notna(cell) for cell in row):
                     continue
                 RecruitmentEmployee.objects.create(
+                    serial=row[0],
+                    employee_number=str(row[1]),
                     name=row[2],
+                    name_en=row[3],
+                    passport_number=row[4],
                     nationality=row[5],
                     official_job=row[6],
-                    actual_job=row[6],
-                    computer_number=str(row[1]),
-                    project_name=row[7],
+                    sponsor_name=row[7],
+                    evaluation=row[8],
+                    result=row[9],
+                    result_expectations=row[10],
                     start_date=timezone.localdate(),
                     is_haramain=is_haramain,
+                    final_score=row[8] if pd.notna(row[8]) else None,
                 )
             messages.success(request, "تم استيراد الموظفين بنجاح")
             return redirect("core:upload_employees")
