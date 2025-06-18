@@ -1,7 +1,15 @@
 # core/admin.py
 from django.contrib import admin
 
-from .models import Learner, Department, Section, Nationality, Sector
+from .models import (
+    Learner,
+    Department,
+    Section,
+    Nationality,
+    Sector,
+    RecruitmentEmployee,
+    EmployeeEvaluation,
+)
 
 
 @admin.register(Learner)
@@ -38,4 +46,16 @@ class NationalityAdmin(admin.ModelAdmin):
 class SectorAdmin(admin.ModelAdmin):
     list_display = ("name",)
     search_fields = ("name",)
+
+
+@admin.register(RecruitmentEmployee)
+class RecruitmentEmployeeAdmin(admin.ModelAdmin):
+    list_display = ("name", "project_name", "start_date")
+    search_fields = ("name", "computer_number", "project_name")
+
+
+@admin.register(EmployeeEvaluation)
+class EmployeeEvaluationAdmin(admin.ModelAdmin):
+    list_display = ("employee", "evaluator", "evaluated_at")
+    list_filter = ("evaluator",)
 

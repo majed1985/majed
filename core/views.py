@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
 import re
+from openpyxl import load_workbook
 
 from .models import (
     Learner,
@@ -18,7 +19,11 @@ from .models import (
     Sector,
     Department,
     Section,
+    RecruitmentEmployee,
+    EmployeeEvaluation,
 )
+
+from .forms import UploadEmployeesForm, EmployeeEvaluationForm
 
 
 # ---------------------------------------------------------------------------
@@ -219,3 +224,57 @@ def service_page(request, service):
     name = service_names.get(service, service)
     context = {"service_name": name}
     return render(request, "core/service_page.html", context)
+
+
+# ---------------------------------------------------------------------------
+def upload_employees(request):
+    """تحميل ملف Excel واستيراد بيانات الموظفين."""
+    if request.method == "POST":
+        form = UploadEmployeesForm(request.POST, request.FILES)
+        if form.is_valid():
+            wb = load_workbook(form.cleaned_data["excel_file"])
+            sheet = wb.active
+            for row in sheet.iter_rows(min_row=2, values_only=True):
+                if not any(row):
+                    continue
+                RecruitmentEmployee.objects.create(
+                    name=row[0],
+                    nationality=row[1],
+                    official_job=row[2],
+                    actual_job=row[3],
+                    computer_number=str(row[4]),
+                    project_name=row[5],
+                    start_date=row[6],
+                )
+            messages.success(request, "تم استيراد الموظفين بنجاح")
+            return redirect("core:upload_employees")
+    else:
+        form = UploadEmployeesForm()
+    employees = RecruitmentEmployee.objects.all().order_by("-created_at")
+    return render(
+        request,
+        "core/upload_employees.html",
+        {"form": form, "employees": employees},
+    )
+
+
+# ---------------------------------------------------------------------------
+def evaluate_employee(request, pk):
+    """تعبئة استمارة تقييم موظف معين."""
+    employee = RecruitmentEmployee.objects.get(pk=pk)
+    if request.method == "POST":
+        form = EmployeeEvaluationForm(request.POST, request.FILES)
+        if form.is_valid():
+            evaluation = form.save(commit=False)
+            evaluation.employee = employee
+            evaluation.evaluator = request.user if request.user.is_authenticated else None
+            evaluation.save()
+            messages.success(request, "تم حفظ التقييم")
+            return redirect("core:evaluate_employee", pk=employee.pk)
+    else:
+        form = EmployeeEvaluationForm()
+    return render(
+        request,
+        "core/evaluate_employee.html",
+        {"form": form, "employee": employee},
+    )

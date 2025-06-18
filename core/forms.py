@@ -3,6 +3,7 @@ from django import forms
 from django.contrib.auth.models import User
 
 from .models import Learner, Nationality, Sector
+from .models import RecruitmentEmployee, EmployeeEvaluation
 
 
 # ـــــــ الخطوة 1: المعلومات الشخصية ـــــــ #
@@ -66,4 +67,21 @@ class LearnerStep4Form(forms.ModelForm):
             raise forms.ValidationError("كلمتا المرور غير متطابقتين")
 
         return cleaned_data
+
+
+class UploadEmployeesForm(forms.Form):
+    excel_file = forms.FileField(label="ملف Excel")
+
+
+class EmployeeEvaluationForm(forms.ModelForm):
+    class Meta:
+        model = EmployeeEvaluation
+        fields = [
+            "appearance_score",
+            "experience_score",
+            "skills_score",
+            "notes",
+            "evaluation_photo",
+            "orientation_photo",
+        ]
 

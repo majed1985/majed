@@ -56,5 +56,9 @@ urlpatterns = [
     # ✅ صفحة الخدمات الأخرى وكروت الخدمات
     path("other-services/", views.other_services, name="other_services"),
     path("service/<str:service>/", views.service_page, name="service_page"),
+
+    # استقدام الحديث
+    path("recruitment/upload/", views.upload_employees, name="upload_employees"),
+    path("recruitment/<int:pk>/evaluate/", views.evaluate_employee, name="evaluate_employee"),
 ]
 
