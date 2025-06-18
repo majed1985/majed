@@ -50,7 +50,7 @@ class SectorAdmin(admin.ModelAdmin):
 
 @admin.register(RecruitmentEmployee)
 class RecruitmentEmployeeAdmin(admin.ModelAdmin):
-    list_display = ("name", "project_name", "start_date")
+    list_display = ("name", "project_name", "start_date", "final_score")
     search_fields = ("name", "computer_number", "project_name")
 
 

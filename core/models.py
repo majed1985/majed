@@ -139,6 +139,7 @@ class RecruitmentEmployee(models.Model):
     start_date = models.DateField("تاريخ المباشرة")
     is_haramain = models.BooleanField("حرمين", default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    final_score = models.FloatField("الدرجة النهائية", null=True, blank=True)
 
     class Meta:
         verbose_name = "موظف استقدام"
