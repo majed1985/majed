@@ -12,6 +12,8 @@ from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
 import re
 from openpyxl import load_workbook
+import pandas as pd
+from django.utils import timezone
 
 from .models import (
     Learner,
@@ -232,19 +234,23 @@ def upload_employees(request):
     if request.method == "POST":
         form = UploadEmployeesForm(request.POST, request.FILES)
         if form.is_valid():
-            wb = load_workbook(form.cleaned_data["excel_file"])
-            sheet = wb.active
-            for row in sheet.iter_rows(min_row=2, values_only=True):
-                if not any(row):
+            df = pd.read_excel(
+                form.cleaned_data["excel_file"],
+                header=None,
+                skiprows=1,
+            )
+            for values in df.itertuples(index=False):
+                row = list(values)
+                if not any(pd.notna(cell) for cell in row):
                     continue
                 RecruitmentEmployee.objects.create(
-                    name=row[0],
-                    nationality=row[1],
-                    official_job=row[2],
-                    actual_job=row[3],
-                    computer_number=str(row[4]),
-                    project_name=row[5],
-                    start_date=row[6],
+                    name=row[2],
+                    nationality=row[5],
+                    official_job=row[6],
+                    actual_job=row[6],
+                    computer_number=str(row[1]),
+                    project_name=row[7],
+                    start_date=timezone.localdate(),
                 )
             messages.success(request, "تم استيراد الموظفين بنجاح")
             return redirect("core:upload_employees")
