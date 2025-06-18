@@ -209,7 +209,7 @@ def service_page(request, service):
         "articles": "مقالات",
         "my_certificates": "شهاداتي",
         "course_announcements": "إعلانات الدورات التدريبية",
-        "cooperative_training": "التدريب التعاوني",
+        "my_works": "أعمالي",
     }
 
     name = service_names.get(service, service)
