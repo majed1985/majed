@@ -201,6 +201,10 @@ def other_services(request):
 # ---------------------------------------------------------------------------
 def service_page(request, service):
     """عرض صفحة خدمة معينة بناءً على الاسم الممرر."""
+    # صفحة "أعمالي" لها قالب مخصص يعرض كروت الخدمات
+    if service == "my_works":
+        return render(request, "core/my_works.html")
+
     service_names = {
         "needs_analysis": "تحليل الاحتياجات التدريبية",
         "share_knowledge": "شاركنا المعرفة",
