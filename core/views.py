@@ -40,6 +40,17 @@ def home(request):
 
 
 # ---------------------------------------------------------------------------
+def recruitment_dashboard(request):
+    """الواجهة الرئيسية لخطوات تقييم موظفي الاستقدام."""
+    return render(request, "core/recruitment_dashboard.html")
+
+
+def recruitment_placeholder(request, page):
+    """صفحات مبدئية لكل مرحلة."""
+    return render(request, "core/recruitment_placeholder.html", {"page": page})
+
+
+# ---------------------------------------------------------------------------
 def register(request):
     """تسجيل متدرّب جديد ثم إرسال رابط التفعيل إلى بريده الإلكتروني."""
 
@@ -234,6 +245,7 @@ def upload_employees(request):
     if request.method == "POST":
         form = UploadEmployeesForm(request.POST, request.FILES)
         if form.is_valid():
+            is_haramain = form.cleaned_data["is_haramain"] == "true"
             df = pd.read_excel(
                 form.cleaned_data["excel_file"],
                 header=None,
@@ -251,6 +263,7 @@ def upload_employees(request):
                     computer_number=str(row[1]),
                     project_name=row[7],
                     start_date=timezone.localdate(),
+                    is_haramain=is_haramain,
                 )
             messages.success(request, "تم استيراد الموظفين بنجاح")
             return redirect("core:upload_employees")
@@ -274,6 +287,7 @@ def evaluate_employee(request, pk):
             evaluation = form.save(commit=False)
             evaluation.employee = employee
             evaluation.evaluator = request.user if request.user.is_authenticated else None
+            evaluation.is_haramain = employee.is_haramain
             evaluation.save()
             messages.success(request, "تم حفظ التقييم")
             return redirect("core:evaluate_employee", pk=employee.pk)
