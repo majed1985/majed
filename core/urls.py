@@ -7,6 +7,8 @@ app_name = "core"
 urlpatterns = [
     # ✅ الصفحة الرئيسية
     path("", views.home, name="home"),
+    path("recruitment/", views.recruitment_dashboard, name="recruitment_dashboard"),
+    path("recruitment/step/<str:page>/", views.recruitment_placeholder, name="recruitment_step"),
 
     # ✅ صفحات التسجيل
     path("register/", views.register, name="register"),

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block main_class %}page-content w-full px-2 py-6{% endblock %}
+
+{% block title %}رفع كشوف الموظفين{% endblock %}
+
+{% block content %}
+<div class="recruitment-container">
+  <div class="recruitment-grid">
+    <a href="{% url 'core:recruitment_step' 'forms' %}" class="recruitment-card">
+      <div class="recruitment-icon"><i class="fas fa-file-alt"></i></div>
+      <div class="recruitment-name">إصدار نماذج التقييم</div>
+    </a>
+    <a href="{% url 'core:recruitment_step' 'input' %}" class="recruitment-card">
+      <div class="recruitment-icon"><i class="fas fa-keyboard"></i></div>
+      <div class="recruitment-name">إدخال نتائج التقييم</div>
+    </a>
+    <a href="{% url 'core:recruitment_step' 'update_db' %}" class="recruitment-card">
+      <div class="recruitment-icon"><i class="fas fa-database"></i></div>
+      <div class="recruitment-name">تحديث قاعدة البيانات</div>
+    </a>
+    <a href="{% url 'core:recruitment_step' 'upload_results' %}" class="recruitment-card">
+      <div class="recruitment-icon"><i class="fas fa-upload"></i></div>
+      <div class="recruitment-name">رفع نتائج التقييم</div>
+    </a>
+    <a href="{% url 'core:recruitment_step' 'upload_photos' %}" class="recruitment-card">
+      <div class="recruitment-icon"><i class="fas fa-camera"></i></div>
+      <div class="recruitment-name">رفع صور التقييم والمحاضرة التعريفية</div>
+    </a>
+    <a href="{% url 'core:recruitment_step' 'attendance' %}" class="recruitment-card">
+      <div class="recruitment-icon"><i class="fas fa-list"></i></div>
+      <div class="recruitment-name">إصدار كشف الحضور والغياب</div>
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+<style>
+.recruitment-container {
+  width: 100%;
+  margin: 0;
+  padding: 20px 0 30px;
+  background: #fff;
+  border-radius: 18px;
+}
+.recruitment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+  justify-items: center;
+}
+.recruitment-card {
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 4px 18px #08347d16;
+  width: 100%;
+  padding: 36px 18px 26px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.18s, transform 0.18s;
+  text-decoration: none;
+}
+.recruitment-card:hover {
+  box-shadow: 0 10px 28px #00cc0033;
+  transform: translateY(-3px) scale(1.03);
+  background: linear-gradient(120deg, #e6f6ea 60%, #f5f5ff 100%);
+}
+.recruitment-icon {
+  background: #002366;
+  color: #fff;
+  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 10px #08347d33;
+}
+.recruitment-name {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #002366;
+  margin-top: 8px;
+  text-align: center;
+}
+@media (max-width: 900px) {
+  .recruitment-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
+}
+@media (max-width: 600px) {
+  .recruitment-grid { grid-template-columns: 1fr; gap: 14px; }
+}
+</style>

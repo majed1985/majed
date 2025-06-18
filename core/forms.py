@@ -71,6 +71,15 @@ class LearnerStep4Form(forms.ModelForm):
 
 class UploadEmployeesForm(forms.Form):
     excel_file = forms.FileField(label="ملف Excel")
+    HARAMAIN_CHOICES = [
+        ("true", "حرمين"),
+        ("false", "غير حرمين"),
+    ]
+    is_haramain = forms.ChoiceField(
+        choices=HARAMAIN_CHOICES,
+        label="نوع الكشف",
+        widget=forms.Select(),
+    )
 
 
 class EmployeeEvaluationForm(forms.ModelForm):

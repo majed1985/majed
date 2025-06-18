@@ -137,6 +137,7 @@ class RecruitmentEmployee(models.Model):
     computer_number = models.CharField("رقم الكمبيوتر", max_length=50)
     project_name = models.CharField("اسم المشروع", max_length=100)
     start_date = models.DateField("تاريخ المباشرة")
+    is_haramain = models.BooleanField("حرمين", default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -178,6 +179,7 @@ class EmployeeEvaluation(models.Model):
         blank=True,
         verbose_name="صورة المحاضرة",
     )
+    is_haramain = models.BooleanField("حرمين", default=False)
     evaluated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
