@@ -14,6 +14,7 @@ import re
 from openpyxl import load_workbook
 import pandas as pd
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from .models import (
     Learner,
@@ -270,10 +271,26 @@ def upload_employees(request):
     else:
         form = UploadEmployeesForm()
     employees = RecruitmentEmployee.objects.all().order_by("-created_at")
+
+    grouped = {}
+    for emp in employees:
+        dt = timezone.localtime(emp.created_at).date()
+        grouped.setdefault(dt.year, {}).setdefault(dt.month, {}).setdefault(dt.day, []).append(emp)
+
+    sorted_grouped = []
+    for year in sorted(grouped.keys(), reverse=True):
+        months = []
+        for month in sorted(grouped[year].keys(), reverse=True):
+            days = []
+            for day in sorted(grouped[year][month].keys(), reverse=True):
+                days.append({"day": day, "employees": grouped[year][month][day]})
+            months.append({"month": month, "days": days})
+        sorted_grouped.append({"year": year, "months": months})
+
     return render(
         request,
         "core/upload_employees.html",
-        {"form": form, "employees": employees},
+        {"form": form, "grouped": sorted_grouped},
     )
 
 
@@ -298,3 +315,17 @@ def evaluate_employee(request, pk):
         "core/evaluate_employee.html",
         {"form": form, "employee": employee},
     )
+
+
+@require_POST
+def set_final_score(request, pk):
+    """تعديل الدرجة النهائية لموظف معين."""
+    employee = RecruitmentEmployee.objects.get(pk=pk)
+    score = request.POST.get("final_score")
+    try:
+        employee.final_score = float(score)
+    except (TypeError, ValueError):
+        pass
+    else:
+        employee.save()
+    return redirect("core:upload_employees")
