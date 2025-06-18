@@ -23,7 +23,15 @@ python manage.py migrate
 ```
 
 Failing to run migrations can lead to errors such as
+`ProgrammingError: column core_recruitmentemployee.serial does not exist` or
 `ProgrammingError: column core_recruitmentemployee.final_score does not exist`.
+If you encounter these errors after pulling new code, simply run:
+
+```bash
+python manage.py migrate
+```
+
+to update the database schema with the latest fields.
 
 Ensure `DJANGO_SECRET_KEY` is set to a unique value in production to avoid using
 the default key from `settings.py`.

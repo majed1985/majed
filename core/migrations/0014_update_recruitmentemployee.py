@@ -12,11 +12,10 @@ class Migration(migrations.Migration):
             name="serial",
             field=models.PositiveIntegerField(null=True, blank=True, verbose_name="التسلسل"),
         ),
-        migrations.AddField(
+        migrations.RenameField(
             model_name="recruitmentemployee",
-            name="employee_number",
-            field=models.CharField(default="", max_length=50, verbose_name="الرقم الوظيفي"),
-            preserve_default=False,
+            old_name="computer_number",
+            new_name="employee_number",
         ),
         migrations.AddField(
             model_name="recruitmentemployee",
@@ -66,10 +65,6 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name="recruitmentemployee",
             name="actual_job",
-        ),
-        migrations.RemoveField(
-            model_name="recruitmentemployee",
-            name="computer_number",
         ),
         migrations.RemoveField(
             model_name="recruitmentemployee",
