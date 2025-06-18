@@ -130,13 +130,31 @@ class Learner(models.Model):
 class RecruitmentEmployee(models.Model):
     """موظفو الاستقدام الحديث المستوردون من ملفات Excel."""
 
-    name = models.CharField("الاسم", max_length=100)
-    nationality = models.CharField("الجنسية", max_length=50)
-    official_job = models.CharField("المهنة الرسمية", max_length=100)
-    actual_job = models.CharField("المهنة الفعلية", max_length=100)
-    computer_number = models.CharField("رقم الكمبيوتر", max_length=50)
-    project_name = models.CharField("اسم المشروع", max_length=100)
-    start_date = models.DateField("تاريخ المباشرة")
+    # ترتيب الحقول بحسب الكشف الورقي
+    serial = models.PositiveIntegerField("التسلسل", null=True, blank=True)
+    employee_number = models.CharField("الرقم الوظيفي", max_length=50)
+    name = models.CharField("الاسم عربي", max_length=100)
+    name_en = models.CharField(
+        "الاسم انجليزي", max_length=100, blank=True, null=True
+    )
+    passport_number = models.CharField(
+        "رقم الجواز", max_length=100, blank=True, null=True
+    )
+    nationality = models.CharField("الجنسية", max_length=50, blank=True, null=True)
+    official_job = models.CharField("المهنة", max_length=100, blank=True, null=True)
+    sponsor_name = models.CharField(
+        "اسم الكفيل", max_length=100, blank=True, null=True
+    )
+
+    # تقييم ونتائج
+    evaluation = models.FloatField("Evaluation", null=True, blank=True)
+    result = models.CharField("Result", max_length=100, blank=True, null=True)
+    result_expectations = models.CharField(
+        "Result Expectations", max_length=100, blank=True, null=True
+    )
+
+    # حقول إضافية كانت موجودة مسبقاً
+    start_date = models.DateField("تاريخ المباشرة", null=True, blank=True)
     is_haramain = models.BooleanField("حرمين", default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     final_score = models.FloatField("الدرجة النهائية", null=True, blank=True)
