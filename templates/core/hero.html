@@ -2,135 +2,146 @@
 
 <!-- ✅ HERO SECTION -->
 <section class="hero">
-  <div class="hero-wrapper">
-    <div class="hero-text">
-      <h2 class="hero-subtitle">مرحبًا بك في منصة إدارة التعلم والتطوير</h2>
-      <h1 class="hero-title">ارتق بمهاراتك وشاركنا رحلة المعرفة</h1>
-      <div class="hero-actions">
-        {% if not request.user.is_authenticated %}
-          <a href="{% url 'core:register' %}" class="btn btn-primary" aria-label="تسجيل حساب جديد">
-            <i class="fa-solid fa-user-plus"></i>
-            تسجيل جديد
-          </a>
-          <a href="{% url 'core:login' %}" class="btn btn-secondary" aria-label="تسجيل الدخول">
-            <i class="fa-solid fa-right-to-bracket"></i>
-            تسجيل دخول
-          </a>
-        {% else %}
-          <a href="{% url 'core:recruitment_dashboard' %}" class="btn btn-primary" aria-label="الذهاب إلى الخدمات">
-            <i class="fa-solid fa-arrow-left"></i>
-            ابدأ الآن
-          </a>
-        {% endif %}
-      </div>
-    </div>
-  </div>
+  <div class="hero-container">
 
-  <!-- ✅ مميزات سريعة -->
-  <div class="features-grid">
-    <a href="{% url 'core:recruitment_dashboard' %}" class="feature-card" aria-label="خدمات الاستقدام">
-      <i class="fa-solid fa-users"></i>
-      <span>خدمات الاستقدام</span>
-    </a>
-    <a href="#" class="feature-card" aria-label="التدريب الإلكتروني">
-      <i class="fa-solid fa-chalkboard-user"></i>
-      <span>التدريب الإلكتروني</span>
-    </a>
-    <a href="#" class="feature-card" aria-label="الموارد البشرية">
-      <i class="fa-solid fa-briefcase"></i>
-      <span>الموارد البشرية</span>
-    </a>
+    <!-- ✅ العنوان -->
+    <div class="hero-content">
+      <h2 class="hero-subtitle">مرحبًا بك في منصة إدارة التعلم والتطوير</h2>
+      <h1 class="hero-title">تعلّم الآن، وكن قائدًا للمستقبل</h1>
+    </div>
+
+    <!-- ✅ الأزرار -->
+    <div class="hero-actions">
+      {% if not request.user.is_authenticated %}
+        <a href="{% url 'core:register' %}" class="btn btn-primary" aria-label="تسجيل حساب جديد">
+          <i class="fa-solid fa-user-plus"></i>
+          تسجيل جديد
+        </a>
+
+        <a href="{% url 'core:login' %}" class="btn btn-secondary" aria-label="تسجيل الدخول">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          تسجيل دخول
+        </a>
+      {% else %}
+        <form action="{% url 'core:logout' %}" method="post" style="display: inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-secondary no-custom-font" aria-label="تسجيل الخروج">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            تسجيل خروج
+          </button>
+        </form>
+      {% endif %}
+    </div>
+
   </div>
 </section>
 
 <style>
-  .hero {
-    padding: 70px 24px 40px;
-    background: linear-gradient(135deg,#f7fafc 0%,#eef7ff 100%);
+  :root {
+    --blue-dark: #072c52;
+    --text-light: #ffffff;
   }
-  .hero-wrapper {
-    max-width: 1100px;
+
+  .hero {
+    padding: 64px 24px 24px;
+    background: #fff;
+  }
+
+  .hero-container {
+    max-width: 1200px;
     margin: 0 auto;
     display: flex;
     align-items: center;
-    justify-content: center;
-    text-align: center;
+    justify-content: space-between;
+    gap: 48px;
+    flex-wrap: wrap;
   }
+
+  .hero-content {
+    flex: 2;
+    text-align: right;
+    margin-right: -20px;
+  }
+
   .hero-subtitle {
     margin: 0;
-    font-size: 22px;
+    font-size: 20px;
     color: var(--blue-dark);
     font-family: 'IBM Plex Sans Arabic', sans-serif;
   }
+
   .hero-title {
-    margin: 10px 0 20px;
-    font-size: 44px;
+    margin: 8px 0 0;
+    font-size: 48px;
     font-weight: 700;
-    color: var(--accent);
+    color: #009c58;
+    white-space: nowrap;
     font-family: 'IBM Plex Sans Arabic', sans-serif;
   }
+
   .hero-actions {
-    margin-top: 12px;
+    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
   }
+
   .hero-actions .btn {
     display: inline-flex;
     flex-direction: row-reverse;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    width: 260px;
+    width: 270px;
     padding: 12px 0;
-    border-radius: 6px;
+    border-radius: 5px;
     font-weight: 700;
     text-decoration: none;
+    white-space: nowrap;
+    margin: 0 auto;
     font-family: 'IBM Plex Sans Arabic', sans-serif;
   }
+
+  .hero-actions .btn i {
+    font-size: 1em;
+    width: 1em;
+    line-height: 1;
+  }
+
   .btn-primary {
     background: var(--blue-dark);
     color: var(--text-light);
-    font-size: 1.25em;
-  }
-  .btn-secondary {
-    background: var(--accent);
-    color: var(--text-light);
-    font-size: 1.25em;
+    font-size: 1.5em;
   }
 
-  .features-grid {
-    margin-top: 60px;
-    display: flex;
-    justify-content: center;
-    gap: 32px;
-    flex-wrap: wrap;
+  .btn-secondary {
+    background: var(--blue-dark);
+    color: var(--text-light);
+    font-size: 1.5em;
   }
-  .feature-card {
-    background: #fff;
-    width: 220px;
-    padding: 24px 18px;
-    border-radius: 18px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
-    text-decoration: none;
-    text-align: center;
-    transition: transform 0.2s, box-shadow 0.2s;
-    color: var(--blue-dark);
-    font-weight: bold;
-  }
-  .feature-card i {
-    font-size: 2.3rem;
-    color: var(--accent);
-    margin-bottom: 10px;
-  }
-  .feature-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 22px rgba(0,0,0,0.1);
+
+  .no-custom-font {
+    font-family: inherit !important;
   }
 
   @media (max-width: 768px) {
-    .hero-title { font-size: 32px; }
-    .hero-actions .btn { width: 100%; }
+    .hero-container {
+      flex-direction: column-reverse;
+      gap: 32px;
+    }
+    .hero-content {
+      text-align: center;
+      margin: 0;
+    }
+    .hero-title {
+      font-size: 36px;
+      white-space: normal;
+    }
+    .hero-actions .btn {
+      width: 100%;
+      justify-content: center;
+      padding: 8px;
+    }
   }
 </style>
