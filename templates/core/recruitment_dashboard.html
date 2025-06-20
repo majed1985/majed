@@ -9,7 +9,6 @@
 {% block content %}
 <div class="recruitment-container">
   <div class="recruitment-header">
-    <img src="{% static 'images/recruitment_portal.svg' %}" style="width:100px;opacity:0.95;margin-bottom:8px;" alt="Recruitment Portal Logo">
     <h1>بوابة الاستقدام الحديث</h1>
     <p class="desc">مرحبًا بك في بوابتك لتسهيل عمليات الاستقدام والتقييم والتوثيق… اختر الخدمة المطلوبة للبدء 👇</p>
   </div>
@@ -48,12 +47,13 @@
   position: relative;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 30px 20px 40px;
-  background: linear-gradient(135deg, #eaf3ff 0%, #f2fdf7 60%, #e8fbf3 100%);
+  padding: 20px 20px 30px;
+  background: linear-gradient(135deg, #f2fbfe 0%, #f7fff9 60%, #eefbf6 100%);
   border-radius: 22px;
-  box-shadow: 0 4px 22px rgba(0,0,0,0.07);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.08);
   border: 1px solid #d9e4f1;
   overflow: hidden;
+  backdrop-filter: blur(3px);
 }
 .recruitment-container::before {
   content: '';
@@ -76,26 +76,26 @@
 }
 .recruitment-header {
   text-align: center;
-  margin-bottom: 28px;
-  padding-top: 16px;
+  margin-bottom: 20px;
+  padding-top: 8px;
 }
 .recruitment-header h1 {
   font-size: 2.6rem;
-  color: var(--blue-dark);
+  color: var(--accent);
   margin-bottom: 0;
   font-family: 'Tajawal', 'Cairo', Arial, sans-serif;
   letter-spacing: 1px;
 }
 .recruitment-header .desc {
-  color: var(--accent);
-  margin-top: 8px;
+  color: var(--blue-dark);
+  margin-top: 6px;
   font-size: 1.05rem;
   font-family: 'Cairo', Arial, sans-serif;
 }
 .recruitment-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 40px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 32px;
   justify-items: center;
 }
 @keyframes fadeInUp {
@@ -118,6 +118,7 @@
   overflow: hidden;
   opacity: 0;
   animation: fadeInUp 0.8s forwards;
+  backdrop-filter: blur(1px);
 }
 .recruitment-card:nth-child(1){animation-delay:0.1s;}
 .recruitment-card:nth-child(2){animation-delay:0.2s;}
@@ -131,6 +132,7 @@
   transform: translateY(-8px) scale(1.05);
   background: linear-gradient(120deg, var(--blue-light) 0%, var(--accent) 100%);
   border-color: var(--accent);
+  color: #fff;
 }
 .recruitment-card::after {
   content: '';
@@ -196,14 +198,18 @@
   letter-spacing: .1px;
   text-align: center;
   font-family: 'Tajawal', 'Cairo', Arial, sans-serif;
+  transition: color 0.3s;
+}
+.recruitment-card:hover .recruitment-name {
+  color: #fff;
 }
 @media (max-width: 900px) {
-  .recruitment-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
+  .recruitment-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
 }
 @media (max-width: 600px) {
-  .recruitment-container { padding: 10px 2px 20px;}
+  .recruitment-container { padding: 12px 4px 20px; }
   .recruitment-grid { grid-template-columns: 1fr; gap: 14px; }
-  .recruitment-card {padding: 26px 5px 18px;}
-  }
+  .recruitment-card { padding: 26px 5px 18px; }
+}
 </style>
 {% endblock %}
