@@ -21,7 +21,7 @@
   <!-- 🧩 مكونات الصفحة -->
 </head>
 
-<body class="bg-white text-gray-800 font-[Tajawal] leading-relaxed">
+<body class="bg-gray-100 text-gray-800 font-[Tajawal] leading-relaxed">
 
   <!-- ✅ شريط التنقل -->
   {% include 'core/navbar.html' %}
@@ -31,11 +31,13 @@
 
   <!-- ✅ رسائل النظام -->
   {% if messages %}
-  <ul class="max-w-3xl mx-auto mt-4 text-center">
+  <div class="max-w-lg mx-auto mt-6">
     {% for message in messages %}
-    <li class="mb-2 p-2 rounded {{ message.tags }}">{{ message }}</li>
+    <div class="mb-4 px-4 py-2 rounded-md shadow {{ message.tags }}">
+      {{ message }}
+    </div>
     {% endfor %}
-  </ul>
+  </div>
   {% endif %}
 
   <!-- ✅ محتوى الصفحة -->

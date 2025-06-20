@@ -9,7 +9,18 @@
 body{
   font-family:'Tajawal',Arial,sans-serif;
   margin:0;
-  background:#fff;
   color:var(--blue-dark);
+}
+
+.success{
+  background:#d1fae5;
+  border:1px solid #34d399;
+  color:#065f46;
+}
+
+.error{
+  background:#fee2e2;
+  border:1px solid #f87171;
+  color:#991b1b;
 }
 

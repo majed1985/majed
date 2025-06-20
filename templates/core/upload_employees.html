@@ -7,11 +7,23 @@
 <h1 class="text-3xl font-bold mb-6 text-center text-[#119383]">رفع وأرشفة كشوف الاستقدام</h1>
 
 <!-- نموذج رفع كشف جديد -->
-<div class="flex justify-center my-6">
-  <form method="post" enctype="multipart/form-data" class="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
+<div class="flex items-center justify-center my-8">
+  <form method="post" enctype="multipart/form-data" class="bg-white border rounded-xl shadow-lg p-6 w-full max-w-xl space-y-4">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="px-6 py-2 bg-green-700 hover:bg-green-800 text-white rounded">رفع الكشف</button>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        {{ form.file.label_tag }}
+        {{ form.file.as_widget(attrs={'class': 'w-full border border-gray-300 rounded-md p-2'}) }}
+      </div>
+      <div>
+        {{ form.report_date.label_tag }}
+        {{ form.report_date.as_widget(attrs={'class': 'w-full border border-gray-300 rounded-md p-2'}) }}
+      </div>
+    </div>
+    <button type="submit" class="flex items-center justify-center gap-2 px-6 py-2 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-lg shadow">
+      <i class="fa-solid fa-upload"></i>
+      <span>رفع الكشف</span>
+    </button>
   </form>
 </div>
 
@@ -21,30 +33,42 @@
   {% if reports %}
     {% for year, months in reports.items %}
       <details class="mb-3">
-        <summary class="font-bold cursor-pointer text-lg text-[#099389]">سنة {{ year }}</summary>
+        <summary class="font-bold cursor-pointer text-lg text-blue-700 flex items-center gap-2">
+          <i class="fa-regular fa-calendar"></i>
+          سنة {{ year }}
+        </summary>
         {% for month, days in months.items %}
           <details class="ml-4 mb-2">
-            <summary class="font-semibold cursor-pointer text-[#0c6672]">شهر {{ month }}</summary>
+            <summary class="font-semibold cursor-pointer text-green-700 flex items-center gap-2">
+              <i class="fa-regular fa-calendar-days"></i>
+              شهر {{ month }}
+            </summary>
             {% for day, files in days.items %}
               <details class="ml-8 mb-2">
-                <summary class="cursor-pointer text-[#1e3459]">يوم {{ day }}</summary>
+                <summary class="cursor-pointer text-blue-900 flex items-center gap-2">
+                  <i class="fa-regular fa-calendar-day"></i>
+                  يوم {{ day }}
+                </summary>
                 {% for file in files %}
                   <details class="ml-12 mb-1">
-                    <summary class="cursor-pointer text-[#19786a]">{{ file.filename }}</summary>
-                    <div class="overflow-x-auto mt-2 mb-5">
-                      <table class="min-w-full divide-y divide-gray-200 border">
+                    <summary class="cursor-pointer text-[#19786a] flex items-center gap-2">
+                      <i class="fa-regular fa-folder-open"></i>
+                      {{ file.filename }}
+                    </summary>
+                    <div class="overflow-x-auto mt-2 mb-5 bg-white border rounded-lg shadow">
+                      <table class="min-w-full divide-y divide-gray-200 text-sm">
                         <thead>
                           <tr>
                             {% for col in file.columns %}
-                              <th class="px-2 py-1 border bg-gray-50 text-xs font-semibold text-gray-700">{{ col }}</th>
+                              <th class="px-2 py-1 border bg-gray-50 text-xs font-semibold text-gray-700 whitespace-nowrap">{{ col }}</th>
                             {% endfor %}
                           </tr>
                         </thead>
                         <tbody>
                           {% for row in file.rows %}
-                          <tr>
+                          <tr class="odd:bg-gray-50">
                             {% for col in file.columns %}
-                              <td class="px-2 py-1 border text-sm text-gray-900">{{ row|get_item:col }}</td>
+                              <td class="px-2 py-1 border text-gray-900 whitespace-nowrap">{{ row|get_item:col }}</td>
                             {% endfor %}
                           </tr>
                           {% endfor %}
