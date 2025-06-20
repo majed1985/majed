@@ -287,14 +287,24 @@ def upload_employees(request):
                 )
                 saved += 1
 
+            success_msg = None
+            error_msg = None
             if saved:
-                messages.success(request, f"تم حفظ {saved} كشف بنجاح")
+                success_msg = f"تم حفظ {saved} كشف بنجاح"
             if skipped:
-                messages.error(
-                    request,
-                    "تم تخطي الكشوف المكررة: " + ", ".join(skipped),
-                )
+                error_msg = "تم تخطي الكشوف المكررة: " + ", ".join(skipped)
+
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"success": success_msg, "error": error_msg})
+
+            if success_msg:
+                messages.success(request, success_msg)
+            if error_msg:
+                messages.error(request, error_msg)
             return redirect("core:upload_employees")
+        else:
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                return JsonResponse({"error": form.errors.as_text()}, status=400)
     else:
         form = RecruitmentReportForm()
 
