@@ -1,6 +1,18 @@
 # core/forms.py
 from django import forms
 from django.contrib.auth.models import User
+from django.forms.widgets import FileInput
+
+
+class ClearableMultipleFileInput(forms.ClearableFileInput):
+    """Allow selecting multiple files with Django's clearable input."""
+
+    allow_multiple_selected = True
+
+    def __init__(self, attrs=None):
+        attrs = attrs or {}
+        attrs["multiple"] = True
+        FileInput.__init__(self, attrs)
 
 from .models import Learner, Nationality, Sector
 from .models import RecruitmentEmployee, EmployeeEvaluation
@@ -85,11 +97,8 @@ class UploadEmployeesForm(forms.Form):
 class RecruitmentReportForm(forms.Form):
     file = forms.FileField(
         label="كشف الاستقدام (Excel)",
-        widget=forms.ClearableFileInput(
-            attrs={
-                "class": "w-full border border-gray-300 rounded-md p-2",
-                "multiple": True,
-            }
+        widget=ClearableMultipleFileInput(
+            attrs={"class": "w-full border border-gray-300 rounded-md p-2"}
         ),
     )
     HARAMAIN_CHOICES = [
