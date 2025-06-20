@@ -4,11 +4,27 @@
 {% block title %}فلترة شجرية{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-4 rounded shadow">
-  <input type="text" id="search" class="w-full mb-2 border rounded p-1" placeholder="بحث...">
-  <div id="tree-filter" class="mb-4"></div>
-  <button id="apply-filter" class="btn btn-primary">OK</button>
-  <button id="cancel-filter" class="btn btn-secondary">Cancel</button>
+<div class="flex flex-col md:flex-row gap-6">
+  <div class="md:w-1/3 bg-white p-4 rounded shadow">
+    <input type="text" id="search" class="w-full mb-2 border rounded p-1" placeholder="بحث...">
+    <div id="tree-filter" class="mb-4"></div>
+    <button id="cancel-filter" class="px-3 py-1 bg-gray-200 rounded">إلغاء التحديد</button>
+  </div>
+  <div class="md:w-2/3 flex-1">
+    <div class="overflow-x-auto bg-white rounded shadow">
+      <table class="min-w-full text-sm">
+        <thead>
+          <tr class="bg-gray-50">
+            <th class="px-2 py-1 border">#</th>
+            <th class="px-2 py-1 border">اسم الملف</th>
+            <th class="px-2 py-1 border">التاريخ</th>
+            <th class="px-2 py-1 border">النوع</th>
+          </tr>
+        </thead>
+        <tbody id="reports-body"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
@@ -17,11 +33,37 @@
 
 <script>
 $(function(){
+  function loadResults(selected){
+    $.ajax({
+      url: "{% url 'core:tree_filter_results' %}",
+      data: {selected: selected},
+      traditional: true,
+      success: function(data){
+        var tbody = $('#reports-body');
+        tbody.empty();
+        $.each(data, function(i, rep){
+          var type = rep.is_haramain ? 'حرمين' : 'غير حرمين';
+          tbody.append('<tr class="odd:bg-gray-50">'+
+            '<td class="px-2 py-1 border">'+(i+1)+'</td>'+
+            '<td class="px-2 py-1 border">'+rep.filename+'</td>'+
+            '<td class="px-2 py-1 border">'+rep.report_date+'</td>'+
+            '<td class="px-2 py-1 border">'+type+'</td>'+
+          '</tr>');
+        });
+      }
+    });
+  }
+
   $.getJSON("{% url 'core:tree_filter_data' %}", function(data){
     $('#tree-filter').jstree({
       'plugins':['checkbox','search'],
       'core':{'data':data}
     });
+
+    $('#tree-filter').on('changed.jstree', function(e, data){
+      loadResults(data.selected);
+    });
+
     var to = false;
     $('#search').keyup(function(){
       if(to){ clearTimeout(to); }
@@ -30,15 +72,13 @@ $(function(){
         $('#tree-filter').jstree(true).search(v);
       },250);
     });
-  });
 
-  $('#apply-filter').on('click', function(){
-    var selected = $('#tree-filter').jstree('get_checked');
-    console.log(selected);
+    loadResults([]);
   });
 
   $('#cancel-filter').on('click', function(){
     $('#tree-filter').jstree('uncheck_all');
+    loadResults([]);
   });
 });
 </script>
