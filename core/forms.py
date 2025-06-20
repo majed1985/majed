@@ -132,4 +132,44 @@ class EmployeeEvaluationForm(forms.ModelForm):
             "evaluation_photo",
             "orientation_photo",
         ]
+        widgets = {
+            "appearance_score": forms.NumberInput(
+                attrs={
+                    "class": "w-full border-2 border-gray-300 rounded px-3 py-2",
+                    "placeholder": "0-10",
+                }
+            ),
+            "experience_score": forms.NumberInput(
+                attrs={
+                    "class": "w-full border-2 border-gray-300 rounded px-3 py-2",
+                    "placeholder": "0-10",
+                }
+            ),
+            "skills_score": forms.NumberInput(
+                attrs={
+                    "class": "w-full border-2 border-gray-300 rounded px-3 py-2",
+                    "placeholder": "0-10",
+                }
+            ),
+            "notes": forms.Textarea(
+                attrs={
+                    "class": "w-full border-2 border-gray-300 rounded px-3 py-2",
+                    "rows": 3,
+                    "placeholder": "اكتب أي ملاحظات...",
+                }
+            ),
+            "evaluation_photo": forms.ClearableFileInput(
+                attrs={"class": "w-full"}
+            ),
+            "orientation_photo": forms.ClearableFileInput(
+                attrs={"class": "w-full"}
+            ),
+        }
+        help_texts = {
+            "appearance_score": "قيّم المظهر من 0 إلى 10.",
+            "experience_score": "قيّم الخبرة من 0 إلى 10.",
+            "skills_score": "قيّم المهارات من 0 إلى 10.",
+            "evaluation_photo": "ارفع صورة أثناء التقييم إن وجدت.",
+            "orientation_photo": "ارفع صورة من المحاضرة التعريفية إن وجدت.",
+        }
 
