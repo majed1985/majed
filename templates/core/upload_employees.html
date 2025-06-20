@@ -8,9 +8,9 @@
 
 <!-- نموذج رفع كشف جديد -->
 <div class="flex items-center justify-center my-8">
-  <form method="post" enctype="multipart/form-data" class="bg-white border rounded-xl shadow-lg p-6 w-full max-w-xl space-y-4">
+  <form method="post" enctype="multipart/form-data" class="bg-white border rounded-xl shadow-lg p-6 w-full max-w-2xl space-y-4">
     {% csrf_token %}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
         {{ form.file.label_tag }}
         {{ form.file }}
@@ -18,6 +18,10 @@
       <div>
         {{ form.report_date.label_tag }}
         {{ form.report_date }}
+      </div>
+      <div>
+        {{ form.is_haramain.label_tag }}
+        {{ form.is_haramain }}
       </div>
     </div>
     <button type="submit" class="flex items-center justify-center gap-2 px-6 py-2 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-lg shadow">
@@ -30,6 +34,15 @@
 <!-- عرض الكشوفات المؤرشفة -->
 <div class="my-10">
   <h2 class="text-xl font-bold mb-4 text-gray-700">الكشوفات المؤرشفة</h2>
+  <form method="get" class="mb-4 flex flex-wrap items-center gap-2">
+    <label for="type" class="font-semibold">نوع الكشف:</label>
+    <select name="type" id="type" class="border rounded p-1">
+      <option value="" {% if not filter_type %}selected{% endif %}>الكل</option>
+      <option value="true" {% if filter_type == 'true' %}selected{% endif %}>حرمين</option>
+      <option value="false" {% if filter_type == 'false' %}selected{% endif %}>غير حرمين</option>
+    </select>
+    <button type="submit" class="px-4 py-1 bg-blue-600 text-white rounded">فلترة</button>
+  </form>
   {% if reports %}
     {% for year, months in reports.items %}
       <details class="mb-3">
@@ -43,38 +56,46 @@
               <i class="fa-regular fa-calendar-days"></i>
               شهر {{ month }}
             </summary>
-            {% for day, files in days.items %}
+            {% for day, types in days.items %}
               <details class="ml-8 mb-2">
                 <summary class="cursor-pointer text-blue-900 flex items-center gap-2">
                   <i class="fa-regular fa-calendar-day"></i>
                   يوم {{ day }}
                 </summary>
-                {% for file in files %}
+                {% for type, files in types.items %}
                   <details class="ml-12 mb-1">
                     <summary class="cursor-pointer text-[#19786a] flex items-center gap-2">
                       <i class="fa-regular fa-folder-open"></i>
-                      {{ file.filename }}
+                      {{ type|yesno:"حرمين,غير حرمين" }}
                     </summary>
-                    <div class="overflow-x-auto mt-2 mb-5 bg-white border rounded-lg shadow">
-                      <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead>
-                          <tr>
-                            {% for col in file.columns %}
-                              <th class="px-2 py-1 border bg-gray-50 text-xs font-semibold text-gray-700 whitespace-nowrap">{{ col }}</th>
-                            {% endfor %}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {% for row in file.rows %}
-                          <tr class="odd:bg-gray-50">
-                            {% for col in file.columns %}
-                              <td class="px-2 py-1 border text-gray-900 whitespace-nowrap">{{ row|get_item:col }}</td>
-                            {% endfor %}
-                          </tr>
-                          {% endfor %}
-                        </tbody>
-                      </table>
-                    </div>
+                    {% for file in files %}
+                      <details class="ml-12 mb-1">
+                        <summary class="cursor-pointer text-[#19786a] flex items-center gap-2">
+                          <i class="fa-regular fa-folder-open"></i>
+                          {{ file.filename }}
+                        </summary>
+                        <div class="overflow-x-auto mt-2 mb-5 bg-white border rounded-lg shadow">
+                          <table class="min-w-full divide-y divide-gray-200 text-sm">
+                            <thead>
+                              <tr>
+                                {% for col in file.columns %}
+                                  <th class="px-2 py-1 border bg-gray-50 text-xs font-semibold text-gray-700 whitespace-nowrap">{{ col }}</th>
+                                {% endfor %}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {% for row in file.rows %}
+                              <tr class="odd:bg-gray-50">
+                                {% for col in file.columns %}
+                                  <td class="px-2 py-1 border text-gray-900 whitespace-nowrap">{{ row|get_item:col }}</td>
+                                {% endfor %}
+                              </tr>
+                              {% endfor %}
+                            </tbody>
+                          </table>
+                        </div>
+                      </details>
+                    {% endfor %}
                   </details>
                 {% endfor %}
               </details>
@@ -84,7 +105,7 @@
       </details>
     {% endfor %}
   {% else %}
-    <div class="text-center text-gray-500">لا توجد كشوفات مؤرشفة بعد.</div>
+    <div class="text-center text-gray-500">لا توجد كشوفات بهذا النوع.</div>
   {% endif %}
 </div>
 

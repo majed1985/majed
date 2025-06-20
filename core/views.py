@@ -257,9 +257,12 @@ def upload_employees(request):
         if form.is_valid():
             excel = form.cleaned_data["file"]
             report_date = form.cleaned_data["report_date"]
+            is_haramain = form.cleaned_data["is_haramain"] == "true"
 
             if RecruitmentReport.objects.filter(
-                filename=excel.name, report_date=report_date
+                filename=excel.name,
+                report_date=report_date,
+                is_haramain=is_haramain,
             ).exists():
                 messages.error(request, "تم رفع هذا الكشف مسبقاً")
                 return redirect("core:upload_employees")
@@ -272,6 +275,7 @@ def upload_employees(request):
                 filename=excel.name,
                 uploaded_by=request.user if request.user.is_authenticated else None,
                 report_date=report_date,
+                is_haramain=is_haramain,
                 columns=columns,
                 rows=rows,
             )
@@ -280,15 +284,20 @@ def upload_employees(request):
     else:
         form = RecruitmentReportForm()
 
-    reports_qs = RecruitmentReport.objects.all().order_by("-report_date")
+    filter_type = request.GET.get("type")
+    reports_qs = RecruitmentReport.objects.all()
+    if filter_type in ["true", "false"]:
+        reports_qs = reports_qs.filter(is_haramain=(filter_type == "true"))
+    reports_qs = reports_qs.order_by("-report_date")
     reports = {}
     for rep in reports_qs:
         dt = rep.report_date
-        reports.setdefault(dt.year, {}).setdefault(dt.month, {}).setdefault(dt.day, []).append(rep)
+        reports.setdefault(dt.year, {}).setdefault(dt.month, {}).setdefault(dt.day, {}).setdefault(rep.is_haramain, []).append(rep)
 
     context = {
         "form": form,
         "reports": reports,
+        "filter_type": filter_type,
     }
     return render(request, "core/upload_employees.html", context)
 
