@@ -83,10 +83,20 @@ class UploadEmployeesForm(forms.Form):
 
 
 class RecruitmentReportForm(forms.Form):
-    file = forms.FileField(label="كشف الاستقدام (Excel)")
+    file = forms.FileField(
+        label="كشف الاستقدام (Excel)",
+        widget=forms.FileInput(
+            attrs={"class": "w-full border border-gray-300 rounded-md p-2"}
+        ),
+    )
     report_date = forms.DateField(
         label="تاريخ الكشف",
-        widget=forms.DateInput(attrs={"type": "date"}),
+        widget=forms.DateInput(
+            attrs={
+                "type": "date",
+                "class": "w-full border border-gray-300 rounded-md p-2",
+            }
+        ),
     )
 
 
