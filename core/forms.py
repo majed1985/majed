@@ -85,8 +85,11 @@ class UploadEmployeesForm(forms.Form):
 class RecruitmentReportForm(forms.Form):
     file = forms.FileField(
         label="كشف الاستقدام (Excel)",
-        widget=forms.FileInput(
-            attrs={"class": "w-full border border-gray-300 rounded-md p-2"}
+        widget=forms.ClearableFileInput(
+            attrs={
+                "class": "w-full border border-gray-300 rounded-md p-2",
+                "multiple": True,
+            }
         ),
     )
     HARAMAIN_CHOICES = [

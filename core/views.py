@@ -1,5 +1,6 @@
 # core/views.py
 from django.shortcuts import render, redirect
+from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
@@ -255,49 +256,84 @@ def upload_employees(request):
     if request.method == "POST":
         form = RecruitmentReportForm(request.POST, request.FILES)
         if form.is_valid():
-            excel = form.cleaned_data["file"]
             report_date = form.cleaned_data["report_date"]
             is_haramain = form.cleaned_data["is_haramain"] == "true"
+            files = request.FILES.getlist("file")
+            saved = 0
+            skipped = []
 
-            if RecruitmentReport.objects.filter(
-                filename=excel.name,
-                report_date=report_date,
-                is_haramain=is_haramain,
-            ).exists():
-                messages.error(request, "تم رفع هذا الكشف مسبقاً")
-                return redirect("core:upload_employees")
+            for excel in files:
+                if RecruitmentReport.objects.filter(
+                    filename=excel.name,
+                    report_date=report_date,
+                    is_haramain=is_haramain,
+                ).exists():
+                    skipped.append(excel.name)
+                    continue
 
-            df = pd.read_excel(excel)
-            columns = df.columns.tolist()
-            rows = df.fillna("").to_dict(orient="records")
+                df = pd.read_excel(excel)
+                columns = df.columns.tolist()
+                rows = df.fillna("").to_dict(orient="records")
 
-            RecruitmentReport.objects.create(
-                filename=excel.name,
-                uploaded_by=request.user if request.user.is_authenticated else None,
-                report_date=report_date,
-                is_haramain=is_haramain,
-                columns=columns,
-                rows=rows,
-            )
-            messages.success(request, "تم حفظ الكشف بنجاح")
+                RecruitmentReport.objects.create(
+                    filename=excel.name,
+                    uploaded_by=request.user if request.user.is_authenticated else None,
+                    report_date=report_date,
+                    is_haramain=is_haramain,
+                    columns=columns,
+                    rows=rows,
+                )
+                saved += 1
+
+            if saved:
+                messages.success(request, f"تم حفظ {saved} كشف بنجاح")
+            if skipped:
+                messages.error(
+                    request,
+                    "تم تخطي الكشوف المكررة: " + ", ".join(skipped),
+                )
             return redirect("core:upload_employees")
     else:
         form = RecruitmentReportForm()
 
     filter_type = request.GET.get("type")
+    year = request.GET.get("year")
+    month = request.GET.get("month")
+    search = request.GET.get("q")
+
     reports_qs = RecruitmentReport.objects.all()
     if filter_type in ["true", "false"]:
         reports_qs = reports_qs.filter(is_haramain=(filter_type == "true"))
+    if year:
+        reports_qs = reports_qs.filter(report_date__year=year)
+    if month:
+        reports_qs = reports_qs.filter(report_date__month=month)
+    if search:
+        reports_qs = reports_qs.filter(filename__icontains=search)
+
     reports_qs = reports_qs.order_by("-report_date")
     reports = {}
+    total_employees = 0
+    latest = reports_qs.first()
     for rep in reports_qs:
         dt = rep.report_date
+        total_employees += len(rep.rows)
         reports.setdefault(dt.year, {}).setdefault(dt.month, {}).setdefault(dt.day, {}).setdefault(rep.is_haramain, []).append(rep)
+
+    stats = {
+        "total_reports": reports_qs.count(),
+        "total_employees": total_employees,
+        "latest": latest,
+    }
 
     context = {
         "form": form,
         "reports": reports,
         "filter_type": filter_type,
+        "stats": stats,
+        "year": year,
+        "month": month,
+        "search": search,
     }
     return render(request, "core/upload_employees.html", context)
 
@@ -306,6 +342,26 @@ def report_detail(request, pk):
     """عرض تفاصيل كشف استقدام محفوظ."""
     report = RecruitmentReport.objects.get(pk=pk)
     return render(request, "core/report_detail.html", {"report": report})
+
+
+@require_POST
+def delete_report(request, pk):
+    """حذف كشف استقدام."""
+    report = RecruitmentReport.objects.filter(pk=pk).first()
+    if report:
+        report.delete()
+        messages.success(request, "تم حذف الكشف")
+    return redirect("core:upload_employees")
+
+
+def export_report_excel(request, pk):
+    """تصدير كشف إلى ملف Excel."""
+    report = RecruitmentReport.objects.get(pk=pk)
+    df = pd.DataFrame(report.rows, columns=report.columns)
+    response = HttpResponse(content_type="application/vnd.ms-excel")
+    response["Content-Disposition"] = f"attachment; filename={report.filename}"
+    df.to_excel(response, index=False)
+    return response
 
 
 # ---------------------------------------------------------------------------
