@@ -98,14 +98,14 @@
   gap: 32px;
   justify-items: center;
 }
-@keyframes fadeInUp {
-  from {opacity: 0; transform: translateY(20px);}
+@keyframes fadeSlideUp {
+  from {opacity: 0; transform: translateY(40px);}
   to {opacity: 1; transform: translateY(0);}
 }
 .recruitment-card {
-  background: #fff;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fbff 100%);
   border-radius: 24px;
-  box-shadow: 0 4px 18px rgba(0,32,64,0.10);
+  box-shadow: 0 6px 24px rgba(0,32,64,0.12);
   width: 100%;
   padding: 38px 18px 30px 18px;
   display: flex;
@@ -117,7 +117,7 @@
   position: relative;
   overflow: hidden;
   opacity: 0;
-  animation: fadeInUp 0.8s forwards;
+  animation: fadeSlideUp 0.9s forwards;
   backdrop-filter: blur(1px);
 }
 .recruitment-card:nth-child(1){animation-delay:0.1s;}
@@ -128,8 +128,8 @@
 .recruitment-card:nth-child(6){animation-delay:0.6s;}
 .recruitment-card:nth-child(7){animation-delay:0.7s;}
 .recruitment-card:hover {
-  box-shadow: 0 12px 40px rgba(7,44,82,0.25);
-  transform: translateY(-8px) scale(1.05);
+  box-shadow: 0 12px 40px rgba(7,44,82,0.30), 0 0 18px rgba(0,156,88,0.55);
+  transform: translateY(-8px) scale(1.07);
   background: linear-gradient(120deg, var(--blue-light) 0%, var(--accent) 100%);
   border-color: var(--accent);
   color: #fff;
@@ -191,7 +191,7 @@
   transform: scale(1.1);
 }
 .recruitment-name {
-  font-size: 1.19rem;
+  font-size: 1.3rem;
   font-weight: bold;
   color: var(--blue-dark);
   margin-top: 9px;
