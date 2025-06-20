@@ -13,31 +13,31 @@
     <p class="desc">مرحبًا بك في بوابتك لتسهيل عمليات الاستقدام والتقييم والتوثيق… اختر الخدمة المطلوبة للبدء 👇</p>
   </div>
   <div class="recruitment-grid">
-    <a href="{% url 'core:upload_employees' %}" class="recruitment-card" title="رفع كشف الموظفين">
+    <a href="{% url 'core:upload_employees' %}" class="recruitment-card" title="رفع كشف الموظفين" aria-label="رفع كشف الموظفين">
       <div class="icon-wrap"><div class="recruitment-icon"><i class="fas fa-users"></i></div></div>
       <div class="recruitment-name">رفع كشف الموظفين</div>
     </a>
-    <a href="{% url 'core:recruitment_step' 'forms' %}" class="recruitment-card" title="إصدار نماذج التقييم">
+    <a href="{% url 'core:recruitment_step' 'forms' %}" class="recruitment-card" title="إصدار نماذج التقييم" aria-label="إصدار نماذج التقييم">
       <div class="icon-wrap"><div class="recruitment-icon"><i class="fas fa-file-alt"></i></div></div>
       <div class="recruitment-name">إصدار نماذج التقييم</div>
     </a>
-    <a href="{% url 'core:input_evaluation_results' %}" class="recruitment-card" title="إدخال نتائج المتقدمين">
+    <a href="{% url 'core:input_evaluation_results' %}" class="recruitment-card" title="إدخال نتائج المتقدمين" aria-label="إدخال نتائج المتقدمين">
       <div class="icon-wrap"><div class="recruitment-icon"><i class="fas fa-keyboard"></i></div></div>
       <div class="recruitment-name">إدخال نتائج التقييم</div>
     </a>
-    <a href="{% url 'core:recruitment_step' 'update_db' %}" class="recruitment-card" title="تحديث قاعدة البيانات">
+    <a href="{% url 'core:recruitment_step' 'update_db' %}" class="recruitment-card" title="تحديث قاعدة البيانات" aria-label="تحديث قاعدة البيانات">
       <div class="icon-wrap"><div class="recruitment-icon"><i class="fas fa-database"></i></div></div>
       <div class="recruitment-name">تحديث قاعدة البيانات</div>
     </a>
-    <a href="{% url 'core:recruitment_step' 'upload_results' %}" class="recruitment-card" title="رفع الملفات المعتمدة">
+    <a href="{% url 'core:recruitment_step' 'upload_results' %}" class="recruitment-card" title="رفع الملفات المعتمدة" aria-label="رفع الملفات المعتمدة">
       <div class="icon-wrap"><div class="recruitment-icon"><i class="fas fa-upload"></i></div></div>
       <div class="recruitment-name">رفع نتائج التقييم</div>
     </a>
-    <a href="{% url 'core:recruitment_step' 'upload_photos' %}" class="recruitment-card" title="رفع صور التقييم">
+    <a href="{% url 'core:recruitment_step' 'upload_photos' %}" class="recruitment-card" title="رفع صور التقييم" aria-label="رفع صور التقييم">
       <div class="icon-wrap"><div class="recruitment-icon"><i class="fas fa-camera"></i></div></div>
       <div class="recruitment-name">رفع صور التقييم والمحاضرة التعريفية</div>
     </a>
-    <a href="{% url 'core:recruitment_step' 'attendance' %}" class="recruitment-card" title="إصدار كشف الحضور">
+    <a href="{% url 'core:recruitment_step' 'attendance' %}" class="recruitment-card" title="إصدار كشف الحضور" aria-label="إصدار كشف الحضور">
       <div class="icon-wrap"><div class="recruitment-icon"><i class="fas fa-list"></i></div></div>
       <div class="recruitment-name">إصدار كشف الحضور والغياب</div>
     </a>
@@ -128,6 +128,8 @@
 .recruitment-card:nth-child(5){animation-delay:0.5s;}
 .recruitment-card:nth-child(6){animation-delay:0.6s;}
 .recruitment-card:nth-child(7){animation-delay:0.7s;}
+.recruitment-card:focus { outline: 2px dashed #119383; outline-offset: 4px; }
+
 .recruitment-card:hover {
   box-shadow: 0 12px 32px rgba(7,44,82,0.25), 0 0 16px rgba(0,156,88,0.45);
   transform: translateY(-6px) scale(1.05);
@@ -135,6 +137,7 @@
   border-color: var(--accent);
   color: #fff;
 }
+
 .recruitment-card::after {
   content: '';
   position: absolute;

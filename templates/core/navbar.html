@@ -11,7 +11,7 @@
   </ul>
 
   {% if request.user.is_authenticated %}
-  <div class="user-menu" onclick="toggleDropdown()">
+  <div class="user-menu" onclick="toggleDropdown()" tabindex="0" aria-label="قائمة المستخدم" onkeydown="if(event.key==='Enter'||event.key===' ') toggleDropdown();">
     <span><i class="fa-solid fa-user"></i> مرحباً {{ learner.first_name_ar }} {{ learner.last_name_ar }} <i class="fa-solid fa-caret-down ml-1"></i></span>
     <ul id="dropdownMenu" class="dropdown hidden">
       <li>
