@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}فلترة شجرية{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-4 rounded shadow">
+  <input type="text" id="search" class="w-full mb-2 border rounded p-1" placeholder="بحث...">
+  <div id="tree-filter" class="mb-4"></div>
+  <button id="apply-filter" class="btn btn-primary">OK</button>
+  <button id="cancel-filter" class="btn btn-secondary">Cancel</button>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+
+<script>
+$(function(){
+  $.getJSON("{% url 'core:tree_filter_data' %}", function(data){
+    $('#tree-filter').jstree({
+      'plugins':['checkbox','search'],
+      'core':{'data':data}
+    });
+    var to = false;
+    $('#search').keyup(function(){
+      if(to){ clearTimeout(to); }
+      to = setTimeout(function(){
+        var v = $('#search').val();
+        $('#tree-filter').jstree(true).search(v);
+      },250);
+    });
+  });
+
+  $('#apply-filter').on('click', function(){
+    var selected = $('#tree-filter').jstree('get_checked');
+    console.log(selected);
+  });
+
+  $('#cancel-filter').on('click', function(){
+    $('#tree-filter').jstree('uncheck_all');
+  });
+});
+</script>
+{% endblock %}

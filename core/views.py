@@ -1,6 +1,6 @@
 # core/views.py
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
@@ -18,6 +18,7 @@ from django.utils import timezone
 import datetime
 from django.views.decorators.http import require_POST
 import os
+import calendar
 
 from .models import (
     Learner,
@@ -459,3 +460,24 @@ def input_evaluation_results(request):
         "employees": selected,
     }
     return render(request, "core/input_results.html", context)
+
+
+# ---------------------------------------------------------------------------
+def tree_filter_page(request):
+    """عرض صفحة الفلترة الشجرية التجريبية."""
+    return render(request, "core/tree_filter.html")
+
+
+def tree_filter_data(request):
+    """توليد بيانات الشجرة على شكل JSON."""
+    data = []
+    for year in [2024, 2025]:
+        data.append({"id": f"{year}", "parent": "#", "text": str(year)})
+        for month_num in range(1, 3):
+            month_name = calendar.month_name[month_num]
+            month_id = f"{year}-{month_num:02d}"
+            data.append({"id": month_id, "parent": f"{year}", "text": month_name})
+            for day in [2, 3, 4, 6, 9]:
+                day_id = f"{month_id}-{day:02d}"
+                data.append({"id": day_id, "parent": month_id, "text": f"{day:02d}"})
+    return JsonResponse(data, safe=False)
