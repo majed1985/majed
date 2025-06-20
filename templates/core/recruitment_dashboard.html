@@ -7,8 +7,9 @@
 {% block content %}
 <div class="recruitment-container">
   <div class="recruitment-header">
+    <img src="{% static 'images/recruitment_portal.svg' %}" style="width:100px;opacity:0.95;margin-bottom:8px;" alt="Recruitment Portal Logo">
     <h1>بوابة الاستقدام الحديث</h1>
-    <p>اختر الخدمة المطلوبة للبدء</p>
+    <p class="desc">مرحبًا بك في بوابتك لتسهيل عمليات الاستقدام والتقييم والتوثيق… اختر الخدمة المطلوبة للبدء 👇</p>
   </div>
   <div class="recruitment-grid">
     <a href="{% url 'core:upload_employees' %}" class="recruitment-card">
@@ -48,23 +49,28 @@
   max-width: 1100px;
   margin: 0 auto;
   padding: 30px 20px 40px;
-  background: linear-gradient(135deg,#ffffff 0%,#f3faf8 100%);
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  background: linear-gradient(135deg,#fafdff 0%,#f3faf8 100%);
+  border-radius: 22px;
+  box-shadow: 0 4px 22px rgba(0,0,0,0.07);
+  border: 1px solid #dde2e8;
 }
 .recruitment-header {
   text-align: center;
   margin-bottom: 28px;
+  padding-top: 16px;
 }
 .recruitment-header h1 {
-  margin: 0;
-  font-size: 2.2rem;
-  color: var(--blue-dark);
+  font-size: 2.25rem;
+  color: #003366;
+  margin-bottom: 0;
+  font-family: 'Tajawal', 'Cairo', Arial, sans-serif;
+  letter-spacing: 1px;
 }
-.recruitment-header p {
+.recruitment-header .desc {
+  color: #408080;
   margin-top: 8px;
-  font-size: 1.15rem;
-  color: #555;
+  font-size: 1.13rem;
+  font-family: 'Cairo', Arial, sans-serif;
 }
 .recruitment-grid {
   display: grid;
@@ -75,44 +81,65 @@
 .recruitment-card {
   background: #fff;
   border-radius: 22px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  box-shadow: 0 2px 13px rgba(0,32,64,0.10);
   width: 100%;
-  padding: 36px 18px 26px 18px;
+  padding: 38px 18px 30px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition: box-shadow 0.23s, transform 0.23s, background 0.3s;
   text-decoration: none;
+  border: 1.5px solid #e8eef6;
+  position: relative;
+  overflow: hidden;
 }
 .recruitment-card:hover {
-  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
-  transform: translateY(-4px);
-  background: linear-gradient(120deg, #e6f6ea 60%, #f5f5ff 100%);
+  box-shadow: 0 12px 30px 0 #00336628;
+  transform: translateY(-5px) scale(1.02);
+  background: linear-gradient(120deg, #e7f3f8 58%, #f8f7ff 100%);
+  border-color: #22c55e;
+}
+.recruitment-card::after {
+  content: '';
+  position: absolute;
+  bottom: -25px;
+  left: 10%;
+  width: 80%;
+  height: 18px;
+  background: linear-gradient(90deg, #22c55e55, #0ea5e955, #818cf855);
+  opacity: 0.18;
+  filter: blur(10px);
+  border-radius: 60% 50%;
+  pointer-events: none;
 }
 .recruitment-icon {
-  background: var(--accent);
+  background: var(--accent,#0ea5e9);
   color: #fff;
   border-radius: 50%;
-  width: 70px;
-  height: 70px;
+  width: 75px;
+  height: 75px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.5rem;
-  margin-bottom: 18px;
-  box-shadow: 0 2px 10px #08347d33;
+  font-size: 2.8rem;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 10px #0ea5e955;
 }
 .recruitment-name {
-  font-size: 1.15rem;
+  font-size: 1.19rem;
   font-weight: bold;
-  color: #002366;
-  margin-top: 8px;
+  color: #0a2351;
+  margin-top: 9px;
+  letter-spacing: .1px;
   text-align: center;
+  font-family: 'Tajawal', 'Cairo', Arial, sans-serif;
 }
 @media (max-width: 900px) {
   .recruitment-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
 }
 @media (max-width: 600px) {
+  .recruitment-container { padding: 10px 2px 20px;}
   .recruitment-grid { grid-template-columns: 1fr; gap: 14px; }
+  .recruitment-card {padding: 26px 5px 18px;}
 }
 </style>
