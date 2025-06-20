@@ -47,10 +47,10 @@
   position: relative;
   width: 100%;
   margin: 0;
-  padding: 20px 10px 30px;
+  padding: 16px 6px 26px;
   background: linear-gradient(135deg, #f2fbfe 0%, #f7fff9 60%, #eefbf6 100%);
   border-radius: 22px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.07);
   border: 1px solid #d9e4f1;
   overflow: hidden;
   backdrop-filter: blur(3px);
@@ -76,26 +76,27 @@
 }
 .recruitment-header {
   text-align: center;
-  margin-bottom: 20px;
-  padding-top: 8px;
+  margin-bottom: 14px;
+  padding-top: 6px;
 }
 .recruitment-header h1 {
   font-size: 2.6rem;
   color: var(--accent);
+  font-weight: 800;
   margin-bottom: 0;
   font-family: 'Tajawal', 'Cairo', Arial, sans-serif;
   letter-spacing: 1px;
 }
 .recruitment-header .desc {
-  color: var(--blue-dark);
-  margin-top: 6px;
+  color: #555;
+  margin-top: 4px;
   font-size: 1.05rem;
   font-family: 'Cairo', Arial, sans-serif;
 }
 .recruitment-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 28px;
   justify-items: stretch;
 }
 @keyframes fadeSlideUp {
@@ -105,19 +106,19 @@
 .recruitment-card {
   background: linear-gradient(135deg, #ffffff 0%, #f9fbff 100%);
   border-radius: 24px;
-  box-shadow: 0 6px 24px rgba(0,32,64,0.12);
+  box-shadow: 0 4px 16px rgba(0,32,64,0.10);
   width: 100%;
   padding: 38px 18px 30px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  transition: box-shadow 0.33s, transform 0.33s, background 0.3s;
+  transition: box-shadow 0.25s ease, transform 0.25s ease, background 0.25s ease;
   text-decoration: none;
   border: 1.5px solid #e8eef6;
   position: relative;
   overflow: hidden;
   opacity: 0;
-  animation: fadeSlideUp 0.9s forwards;
+  animation: fadeSlideUp 0.7s forwards;
   backdrop-filter: blur(1px);
 }
 .recruitment-card:nth-child(1){animation-delay:0.1s;}
@@ -128,8 +129,8 @@
 .recruitment-card:nth-child(6){animation-delay:0.6s;}
 .recruitment-card:nth-child(7){animation-delay:0.7s;}
 .recruitment-card:hover {
-  box-shadow: 0 12px 40px rgba(7,44,82,0.30), 0 0 18px rgba(0,156,88,0.55);
-  transform: translateY(-8px) scale(1.07);
+  box-shadow: 0 12px 32px rgba(7,44,82,0.25), 0 0 16px rgba(0,156,88,0.45);
+  transform: translateY(-6px) scale(1.05);
   background: linear-gradient(120deg, var(--blue-light) 0%, var(--accent) 100%);
   border-color: var(--accent);
   color: #fff;
@@ -202,6 +203,9 @@
 }
 .recruitment-card:hover .recruitment-name {
   color: #fff;
+}
+@media (min-width: 1200px) {
+  .recruitment-grid { grid-template-columns: repeat(4, 1fr); }
 }
 @media (max-width: 900px) {
   .recruitment-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
