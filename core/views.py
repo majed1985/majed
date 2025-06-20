@@ -16,6 +16,7 @@ import pandas as pd
 from django.utils import timezone
 import datetime
 from django.views.decorators.http import require_POST
+import os
 
 from .models import (
     Learner,
@@ -44,6 +45,8 @@ def home(request):
 # ---------------------------------------------------------------------------
 def recruitment_dashboard(request):
     """الواجهة الرئيسية لخطوات تقييم موظفي الاستقدام."""
+    print("Rendering template: core/recruitment_dashboard.html")
+    print("Template absolute path:", os.path.abspath(__file__))
     return render(request, "core/recruitment_dashboard.html")
 
 
