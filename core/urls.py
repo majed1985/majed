@@ -61,6 +61,7 @@ urlpatterns = [
 
     # استقدام الحديث
     path("recruitment/upload/", views.upload_employees, name="upload_employees"),
+    path("recruitment/report/<int:pk>/", views.report_detail, name="report_detail"),
     path("recruitment/<int:pk>/evaluate/", views.evaluate_employee, name="evaluate_employee"),
     path("recruitment/input-results/", views.input_evaluation_results, name="input_evaluation_results"),
     path("recruitment/<int:pk>/final-score/", views.set_final_score, name="set_final_score"),

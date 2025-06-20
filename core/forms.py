@@ -82,6 +82,14 @@ class UploadEmployeesForm(forms.Form):
     )
 
 
+class RecruitmentReportForm(forms.Form):
+    file = forms.FileField(label="كشف الاستقدام (Excel)")
+    report_date = forms.DateField(
+        label="تاريخ الكشف",
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+
+
 class EmployeeEvaluationForm(forms.ModelForm):
     class Meta:
         model = EmployeeEvaluation
