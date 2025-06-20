@@ -1,10 +1,57 @@
 {% extends 'base.html' %}
 {% block title %}تقييم الموظف{% endblock %}
 {% block content %}
-<h1 class="text-2xl font-bold mb-4">تقييم {{ employee.name }}</h1>
-<form method="post" enctype="multipart/form-data" class="space-y-4">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded">حفظ</button>
-</form>
+<h1 class="text-2xl font-bold text-center mb-6">تقييم {{ employee.name }}</h1>
+
+<div class="max-w-md mx-auto bg-white rounded-xl shadow p-6">
+  <form method="post" enctype="multipart/form-data" class="space-y-4">
+    {% csrf_token %}
+
+    <div>
+      {{ form.appearance_score.label_tag }}
+      {{ form.appearance_score }}
+      <p class="text-sm text-gray-500">{{ form.appearance_score.help_text }}</p>
+      {{ form.appearance_score.errors }}
+    </div>
+
+    <div>
+      {{ form.experience_score.label_tag }}
+      {{ form.experience_score }}
+      <p class="text-sm text-gray-500">{{ form.experience_score.help_text }}</p>
+      {{ form.experience_score.errors }}
+    </div>
+
+    <div>
+      {{ form.skills_score.label_tag }}
+      {{ form.skills_score }}
+      <p class="text-sm text-gray-500">{{ form.skills_score.help_text }}</p>
+      {{ form.skills_score.errors }}
+    </div>
+
+    <div>
+      {{ form.notes.label_tag }}
+      {{ form.notes }}
+      <p class="text-sm text-gray-500">{{ form.notes.help_text }}</p>
+      {{ form.notes.errors }}
+    </div>
+
+    <div>
+      {{ form.evaluation_photo.label_tag }}
+      {{ form.evaluation_photo }}
+      <p class="text-sm text-gray-500">{{ form.evaluation_photo.help_text }}</p>
+      {{ form.evaluation_photo.errors }}
+    </div>
+
+    <div>
+      {{ form.orientation_photo.label_tag }}
+      {{ form.orientation_photo }}
+      <p class="text-sm text-gray-500">{{ form.orientation_photo.help_text }}</p>
+      {{ form.orientation_photo.errors }}
+    </div>
+
+    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded">
+      حفظ
+    </button>
+  </form>
+</div>
 {% endblock %}
