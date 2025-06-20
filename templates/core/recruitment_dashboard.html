@@ -14,32 +14,32 @@
     <p class="desc">مرحبًا بك في بوابتك لتسهيل عمليات الاستقدام والتقييم والتوثيق… اختر الخدمة المطلوبة للبدء 👇</p>
   </div>
   <div class="recruitment-grid">
-    <a href="{% url 'core:upload_employees' %}" class="recruitment-card">
-      <div class="recruitment-icon"><i class="fas fa-users"></i></div>
+    <a href="{% url 'core:upload_employees' %}" class="recruitment-card" title="رفع كشف الموظفين">
+      <div class="icon-wrap"><div class="recruitment-icon"><i class="fas fa-users"></i></div></div>
       <div class="recruitment-name">رفع كشف الموظفين</div>
     </a>
-    <a href="{% url 'core:recruitment_step' 'forms' %}" class="recruitment-card">
-      <div class="recruitment-icon"><i class="fas fa-file-alt"></i></div>
+    <a href="{% url 'core:recruitment_step' 'forms' %}" class="recruitment-card" title="إصدار نماذج التقييم">
+      <div class="icon-wrap"><div class="recruitment-icon"><i class="fas fa-file-alt"></i></div></div>
       <div class="recruitment-name">إصدار نماذج التقييم</div>
     </a>
-    <a href="{% url 'core:input_evaluation_results' %}" class="recruitment-card">
-      <div class="recruitment-icon"><i class="fas fa-keyboard"></i></div>
+    <a href="{% url 'core:input_evaluation_results' %}" class="recruitment-card" title="إدخال نتائج المتقدمين">
+      <div class="icon-wrap"><div class="recruitment-icon"><i class="fas fa-keyboard"></i></div></div>
       <div class="recruitment-name">إدخال نتائج التقييم</div>
     </a>
-    <a href="{% url 'core:recruitment_step' 'update_db' %}" class="recruitment-card">
-      <div class="recruitment-icon"><i class="fas fa-database"></i></div>
+    <a href="{% url 'core:recruitment_step' 'update_db' %}" class="recruitment-card" title="تحديث قاعدة البيانات">
+      <div class="icon-wrap"><div class="recruitment-icon"><i class="fas fa-database"></i></div></div>
       <div class="recruitment-name">تحديث قاعدة البيانات</div>
     </a>
-    <a href="{% url 'core:recruitment_step' 'upload_results' %}" class="recruitment-card">
-      <div class="recruitment-icon"><i class="fas fa-upload"></i></div>
+    <a href="{% url 'core:recruitment_step' 'upload_results' %}" class="recruitment-card" title="رفع الملفات المعتمدة">
+      <div class="icon-wrap"><div class="recruitment-icon"><i class="fas fa-upload"></i></div></div>
       <div class="recruitment-name">رفع نتائج التقييم</div>
     </a>
-    <a href="{% url 'core:recruitment_step' 'upload_photos' %}" class="recruitment-card">
-      <div class="recruitment-icon"><i class="fas fa-camera"></i></div>
+    <a href="{% url 'core:recruitment_step' 'upload_photos' %}" class="recruitment-card" title="رفع صور التقييم">
+      <div class="icon-wrap"><div class="recruitment-icon"><i class="fas fa-camera"></i></div></div>
       <div class="recruitment-name">رفع صور التقييم والمحاضرة التعريفية</div>
     </a>
-    <a href="{% url 'core:recruitment_step' 'attendance' %}" class="recruitment-card">
-      <div class="recruitment-icon"><i class="fas fa-list"></i></div>
+    <a href="{% url 'core:recruitment_step' 'attendance' %}" class="recruitment-card" title="إصدار كشف الحضور">
+      <div class="icon-wrap"><div class="recruitment-icon"><i class="fas fa-list"></i></div></div>
       <div class="recruitment-name">إصدار كشف الحضور والغياب</div>
     </a>
   </div>
@@ -49,7 +49,7 @@
   max-width: 1100px;
   margin: 0 auto;
   padding: 30px 20px 40px;
-  background: linear-gradient(135deg,#eaf3ff 0%,#f2fdf7 100%);
+  background: linear-gradient(135deg, #eaf3ff 0%, #f2fdf7 60%, #e8fbf3 100%);
   border-radius: 22px;
   box-shadow: 0 4px 22px rgba(0,0,0,0.07);
   border: 1px solid #d9e4f1;
@@ -58,25 +58,20 @@
 .recruitment-container::before {
   content: '';
   position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 160px;
-  height: 160px;
-  background: radial-gradient(circle at center, var(--accent) 0%, transparent 70%);
-  opacity: 0.15;
-  transform: rotate(45deg);
+  inset: 0;
+  background: repeating-linear-gradient(135deg, rgba(255,255,255,0.15) 0px, rgba(255,255,255,0.15) 2px, transparent 2px, transparent 6px);
+  opacity: 0.25;
   pointer-events: none;
 }
 .recruitment-container::after {
   content: '';
   position: absolute;
   bottom: -60px;
-  left: -60px;
-  width: 180px;
-  height: 180px;
+  right: -60px;
+  width: 220px;
+  height: 220px;
   background: radial-gradient(circle at center, var(--blue-light) 0%, transparent 70%);
-  opacity: 0.15;
-  transform: rotate(-45deg);
+  opacity: 0.25;
   pointer-events: none;
 }
 .recruitment-header {
@@ -100,8 +95,12 @@
 .recruitment-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 32px;
+  gap: 40px;
   justify-items: center;
+}
+@keyframes fadeInUp {
+  from {opacity: 0; transform: translateY(20px);}
+  to {opacity: 1; transform: translateY(0);}
 }
 .recruitment-card {
   background: #fff;
@@ -117,11 +116,20 @@
   border: 1.5px solid #e8eef6;
   position: relative;
   overflow: hidden;
+  opacity: 0;
+  animation: fadeInUp 0.8s forwards;
 }
+.recruitment-card:nth-child(1){animation-delay:0.1s;}
+.recruitment-card:nth-child(2){animation-delay:0.2s;}
+.recruitment-card:nth-child(3){animation-delay:0.3s;}
+.recruitment-card:nth-child(4){animation-delay:0.4s;}
+.recruitment-card:nth-child(5){animation-delay:0.5s;}
+.recruitment-card:nth-child(6){animation-delay:0.6s;}
+.recruitment-card:nth-child(7){animation-delay:0.7s;}
 .recruitment-card:hover {
   box-shadow: 0 12px 40px rgba(7,44,82,0.25);
   transform: translateY(-8px) scale(1.05);
-  background: linear-gradient(120deg, #eaf6ff 0%, #f2fdf7 100%);
+  background: linear-gradient(120deg, var(--blue-light) 0%, var(--accent) 100%);
   border-color: var(--accent);
 }
 .recruitment-card::after {
@@ -158,17 +166,22 @@
   transform: translate(-50%, -50%) scale(1);
   transition: 0s;
 }
+.icon-wrap {
+  padding: 4px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue-light), var(--accent));
+  margin-bottom: 16px;
+}
 .recruitment-icon {
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), var(--blue-light));
   color: #fff;
   border-radius: 50%;
-  width: 75px;
-  height: 75px;
+  width: 90px;
+  height: 90px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.8rem;
-  margin-bottom: 16px;
+  font-size: 3rem;
   box-shadow: 0 2px 10px rgba(0,156,88,0.35);
   transition: transform 0.33s;
 }
