@@ -71,4 +71,5 @@ urlpatterns = [
     # فلترة شجرية تجريبية
     path("tree-filter/", views.tree_filter_page, name="tree_filter"),
     path("tree-filter/data/", views.tree_filter_data, name="tree_filter_data"),
+    path("tree-filter/results/", views.tree_filter_results, name="tree_filter_results"),
 ]

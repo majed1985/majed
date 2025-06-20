@@ -1,6 +1,7 @@
 # core/views.py
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
+from django.db.models import Q
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
@@ -469,15 +470,53 @@ def tree_filter_page(request):
 
 
 def tree_filter_data(request):
-    """توليد بيانات الشجرة على شكل JSON."""
+    """توليد بيانات الشجرة على شكل JSON من قاعدة البيانات."""
+    reports = RecruitmentReport.objects.all()
+    grouped = {}
+    for rep in reports:
+        dt = rep.report_date
+        grouped.setdefault(dt.year, {}).setdefault(dt.month, set()).add(dt.day)
+
     data = []
-    for year in [2024, 2025]:
+    for year in sorted(grouped.keys(), reverse=True):
         data.append({"id": f"{year}", "parent": "#", "text": str(year)})
-        for month_num in range(1, 3):
-            month_name = calendar.month_name[month_num]
-            month_id = f"{year}-{month_num:02d}"
+        for month in sorted(grouped[year].keys(), reverse=True):
+            month_id = f"{year}-{month:02d}"
+            month_name = calendar.month_name[month]
             data.append({"id": month_id, "parent": f"{year}", "text": month_name})
-            for day in [2, 3, 4, 6, 9]:
+            for day in sorted(grouped[year][month], reverse=True):
                 day_id = f"{month_id}-{day:02d}"
                 data.append({"id": day_id, "parent": month_id, "text": f"{day:02d}"})
+    return JsonResponse(data, safe=False)
+
+
+def tree_filter_results(request):
+    """إرجاع الكشوف حسب العناصر المحددة في الشجرة."""
+    selected = request.GET.getlist("selected[]")
+    qs = RecruitmentReport.objects.all()
+    if selected:
+        query = Q()
+        for node in selected:
+            parts = node.split("-")
+            if len(parts) == 1:
+                query |= Q(report_date__year=int(parts[0]))
+            elif len(parts) == 2:
+                query |= Q(report_date__year=int(parts[0]), report_date__month=int(parts[1]))
+            elif len(parts) == 3:
+                query |= Q(
+                    report_date__year=int(parts[0]),
+                    report_date__month=int(parts[1]),
+                    report_date__day=int(parts[2]),
+                )
+        qs = qs.filter(query)
+    qs = qs.order_by("-report_date")
+    data = [
+        {
+            "id": r.id,
+            "filename": r.filename,
+            "report_date": r.report_date.strftime("%Y-%m-%d"),
+            "is_haramain": r.is_haramain,
+        }
+        for r in qs
+    ]
     return JsonResponse(data, safe=False)
