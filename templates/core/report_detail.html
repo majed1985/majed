@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load recruitment_extras %}
+{% block title %}تفاصيل كشف الاستقدام{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold mb-6 text-center text-[#119383]">{{ report.filename }}</h1>
+<div class="overflow-x-auto">
+  <table class="min-w-full divide-y divide-gray-200 border">
+    <thead>
+      <tr>
+        {% for col in report.columns %}
+          <th class="px-2 py-1 border bg-gray-50 text-xs font-semibold text-gray-700">{{ col }}</th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in report.rows %}
+      <tr>
+        {% for col in report.columns %}
+          <td class="px-2 py-1 border text-sm text-gray-900">{{ row|get_item:col }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

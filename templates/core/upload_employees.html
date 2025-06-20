@@ -1,56 +1,67 @@
 {% extends 'base.html' %}
-{% block title %}تحميل الموظفين{% endblock %}
-{% block content %}
-<h1 class="text-2xl font-bold mb-4">تحميل كشوف الموظفين</h1>
-<form method="post" enctype="multipart/form-data" class="mb-6 space-y-4">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">رفع</button>
-</form>
+{% load recruitment_extras %}
+{% block title %}أرشفة كشوفات الاستقدام{% endblock %}
 
-{% for year in grouped %}
-<details class="mb-4">
-  <summary class="cursor-pointer font-bold">{{ year.year }}</summary>
-  {% for month in year.months %}
-  <details class="ml-4 mb-3">
-    <summary class="cursor-pointer font-semibold">الشهر {{ month.month }}</summary>
-    {% for day in month.days %}
-    <details class="ml-8 mb-2">
-      <summary class="cursor-pointer">اليوم {{ day.day }}</summary>
-      <table class="min-w-full divide-y divide-gray-200 my-2">
-        <thead>
-          <tr>
-            <th class="px-2">الاسم</th>
-            <th class="px-2">الرقم الوظيفي</th>
-            <th class="px-2">التاريخ</th>
-            <th class="px-2">حرمين؟</th>
-            <th class="px-2">الدرجة النهائية</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for emp in day.employees %}
-          <tr>
-            <td class="px-2">{{ emp.name }}</td>
-            <td class="px-2">{{ emp.employee_number }}</td>
-            <td class="px-2">{{ emp.start_date }}</td>
-            <td class="px-2">{{ emp.is_haramain|yesno:"نعم,لا" }}</td>
-            <td class="px-2">
-              <form method="post" action="{% url 'core:set_final_score' emp.pk %}" class="flex space-x-1 items-center">
-                {% csrf_token %}
-                <input type="number" step="0.01" name="final_score" value="{{ emp.final_score|default_if_none:'' }}" class="border px-2 w-20 text-sm">
-                <button type="submit" class="px-2 text-green-600">حفظ</button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </details>
+{% block content %}
+
+<h1 class="text-3xl font-bold mb-6 text-center text-[#119383]">رفع وأرشفة كشوف الاستقدام</h1>
+
+<!-- نموذج رفع كشف جديد -->
+<div class="flex justify-center my-6">
+  <form method="post" enctype="multipart/form-data" class="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="px-6 py-2 bg-green-700 hover:bg-green-800 text-white rounded">رفع الكشف</button>
+  </form>
+</div>
+
+<!-- عرض الكشوفات المؤرشفة -->
+<div class="my-10">
+  <h2 class="text-xl font-bold mb-4 text-gray-700">الكشوفات المؤرشفة</h2>
+  {% if reports %}
+    {% for year, months in reports.items %}
+      <details class="mb-3">
+        <summary class="font-bold cursor-pointer text-lg text-[#099389]">سنة {{ year }}</summary>
+        {% for month, days in months.items %}
+          <details class="ml-4 mb-2">
+            <summary class="font-semibold cursor-pointer text-[#0c6672]">شهر {{ month }}</summary>
+            {% for day, files in days.items %}
+              <details class="ml-8 mb-2">
+                <summary class="cursor-pointer text-[#1e3459]">يوم {{ day }}</summary>
+                {% for file in files %}
+                  <details class="ml-12 mb-1">
+                    <summary class="cursor-pointer text-[#19786a]">{{ file.filename }}</summary>
+                    <div class="overflow-x-auto mt-2 mb-5">
+                      <table class="min-w-full divide-y divide-gray-200 border">
+                        <thead>
+                          <tr>
+                            {% for col in file.columns %}
+                              <th class="px-2 py-1 border bg-gray-50 text-xs font-semibold text-gray-700">{{ col }}</th>
+                            {% endfor %}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for row in file.rows %}
+                          <tr>
+                            {% for col in file.columns %}
+                              <td class="px-2 py-1 border text-sm text-gray-900">{{ row|get_item:col }}</td>
+                            {% endfor %}
+                          </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  </details>
+                {% endfor %}
+              </details>
+            {% endfor %}
+          </details>
+        {% endfor %}
+      </details>
     {% endfor %}
-  </details>
-  {% endfor %}
-</details>
-{% empty %}
-<p>لا توجد بيانات</p>
-{% endfor %}
+  {% else %}
+    <div class="text-center text-gray-500">لا توجد كشوفات مؤرشفة بعد.</div>
+  {% endif %}
+</div>
+
 {% endblock %}

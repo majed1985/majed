@@ -208,3 +208,28 @@ class EmployeeEvaluation(models.Model):
     def __str__(self) -> str:
         return f"{self.employee.name} - {self.evaluator}" if self.evaluator else self.employee.name
 
+
+class RecruitmentReport(models.Model):
+    """تمثيل كشف استقدام كامل كما هو مرفوع من ملف Excel."""
+
+    filename = models.CharField("اسم الملف", max_length=255)
+    uploaded_at = models.DateTimeField("تاريخ الرفع", auto_now_add=True)
+    uploaded_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="تم الرفع بواسطة",
+    )
+    report_date = models.DateField("تاريخ الكشف")
+    columns = models.JSONField("الأعمدة")
+    rows = models.JSONField("الصفوف")
+
+    class Meta:
+        unique_together = ("filename", "report_date")
+        verbose_name = "كشف استقدام"
+        verbose_name_plural = "كشوف الاستقدام"
+
+    def __str__(self) -> str:
+        return f"{self.filename} - {self.report_date}"
+

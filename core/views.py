@@ -26,9 +26,13 @@ from .models import (
     Section,
     RecruitmentEmployee,
     EmployeeEvaluation,
+    RecruitmentReport,
 )
 
-from .forms import UploadEmployeesForm, EmployeeEvaluationForm
+from .forms import (
+    EmployeeEvaluationForm,
+    RecruitmentReportForm,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -246,62 +250,53 @@ def service_page(request, service):
 
 # ---------------------------------------------------------------------------
 def upload_employees(request):
-    """تحميل ملف Excel واستيراد بيانات الموظفين."""
+    """رفع كشوف الموظفين وتخزينها كما هي في قاعدة البيانات."""
+
     if request.method == "POST":
-        form = UploadEmployeesForm(request.POST, request.FILES)
+        form = RecruitmentReportForm(request.POST, request.FILES)
         if form.is_valid():
-            is_haramain = form.cleaned_data["is_haramain"] == "true"
-            df = pd.read_excel(
-                form.cleaned_data["excel_file"],
-                header=None,
-                skiprows=1,
+            excel = form.cleaned_data["file"]
+            report_date = form.cleaned_data["report_date"]
+
+            if RecruitmentReport.objects.filter(
+                filename=excel.name, report_date=report_date
+            ).exists():
+                messages.error(request, "تم رفع هذا الكشف مسبقاً")
+                return redirect("core:upload_employees")
+
+            df = pd.read_excel(excel)
+            columns = df.columns.tolist()
+            rows = df.fillna("").to_dict(orient="records")
+
+            RecruitmentReport.objects.create(
+                filename=excel.name,
+                uploaded_by=request.user if request.user.is_authenticated else None,
+                report_date=report_date,
+                columns=columns,
+                rows=rows,
             )
-            for values in df.itertuples(index=False):
-                row = list(values)
-                if not any(pd.notna(cell) for cell in row):
-                    continue
-                RecruitmentEmployee.objects.create(
-                    serial=row[0],
-                    employee_number=str(row[1]),
-                    name=row[2],
-                    name_en=row[3],
-                    passport_number=row[4],
-                    nationality=row[5],
-                    official_job=row[6],
-                    sponsor_name=row[7],
-                    evaluation=row[8],
-                    result=row[9],
-                    result_expectations=row[10],
-                    start_date=timezone.localdate(),
-                    is_haramain=is_haramain,
-                    final_score=row[8] if pd.notna(row[8]) else None,
-                )
-            messages.success(request, "تم استيراد الموظفين بنجاح")
+            messages.success(request, "تم حفظ الكشف بنجاح")
             return redirect("core:upload_employees")
     else:
-        form = UploadEmployeesForm()
-    employees = RecruitmentEmployee.objects.all().order_by("-created_at")
+        form = RecruitmentReportForm()
 
-    grouped = {}
-    for emp in employees:
-        dt = timezone.localtime(emp.created_at).date()
-        grouped.setdefault(dt.year, {}).setdefault(dt.month, {}).setdefault(dt.day, []).append(emp)
+    reports_qs = RecruitmentReport.objects.all().order_by("-report_date")
+    reports = {}
+    for rep in reports_qs:
+        dt = rep.report_date
+        reports.setdefault(dt.year, {}).setdefault(dt.month, {}).setdefault(dt.day, []).append(rep)
 
-    sorted_grouped = []
-    for year in sorted(grouped.keys(), reverse=True):
-        months = []
-        for month in sorted(grouped[year].keys(), reverse=True):
-            days = []
-            for day in sorted(grouped[year][month].keys(), reverse=True):
-                days.append({"day": day, "employees": grouped[year][month][day]})
-            months.append({"month": month, "days": days})
-        sorted_grouped.append({"year": year, "months": months})
+    context = {
+        "form": form,
+        "reports": reports,
+    }
+    return render(request, "core/upload_employees.html", context)
 
-    return render(
-        request,
-        "core/upload_employees.html",
-        {"form": form, "grouped": sorted_grouped},
-    )
+
+def report_detail(request, pk):
+    """عرض تفاصيل كشف استقدام محفوظ."""
+    report = RecruitmentReport.objects.get(pk=pk)
+    return render(request, "core/report_detail.html", {"report": report})
 
 
 # ---------------------------------------------------------------------------
