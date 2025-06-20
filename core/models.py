@@ -222,11 +222,12 @@ class RecruitmentReport(models.Model):
         verbose_name="تم الرفع بواسطة",
     )
     report_date = models.DateField("تاريخ الكشف")
+    is_haramain = models.BooleanField("حرمين", default=False)
     columns = models.JSONField("الأعمدة")
     rows = models.JSONField("الصفوف")
 
     class Meta:
-        unique_together = ("filename", "report_date")
+        unique_together = ("filename", "report_date", "is_haramain")
         verbose_name = "كشف استقدام"
         verbose_name_plural = "كشوف الاستقدام"
 
