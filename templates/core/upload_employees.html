@@ -28,10 +28,13 @@
         {{ form.is_haramain }}
         {{ form.is_haramain.errors }}
       </div>
-      <button class="w-full py-2 rounded-lg bg-green-700 hover:bg-green-800 text-white font-bold flex items-center justify-center gap-2">
-        <i class="fa-solid fa-cloud-arrow-up"></i>
-        رفع الكشف
+      <button type="submit" class="flex items-center gap-2 px-6 py-2 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-lg shadow mx-auto mt-4">
+        <i class="fa-solid fa-upload"></i>
+        <span>رفع الكشف</span>
       </button>
+      <p class="text-center text-gray-500 text-sm mt-2">
+        بعد اختيار الملف وتحديد النوع والتاريخ، اضغط على زر رفع لإضافة الكشف للأرشيف
+      </p>
     </form>
   </div>
 </div>
