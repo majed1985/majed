@@ -37,3 +37,28 @@ body{
   direction: ltr;
 }
 
+.drop-area {
+  border: 2px dashed #a7f3d0;
+  background: #f0fdf4;
+  padding: 1rem;
+  text-align: center;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.drop-area.dragover {
+  background: #dcfce7;
+}
+
+.input-icon {
+  position: relative;
+}
+.input-icon i {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+

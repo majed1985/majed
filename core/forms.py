@@ -138,14 +138,20 @@ class RecruitmentReportForm(forms.Form):
     is_haramain = forms.ChoiceField(
         choices=HARAMAIN_CHOICES,
         label="نوع الكشف",
-        widget=forms.Select(attrs={"class": "w-full border border-gray-300 rounded-md p-2"}),
+        widget=forms.Select(
+            attrs={
+                "class": "w-full border border-gray-300 rounded-md p-2 pl-10",
+                "placeholder": "اختر نوع الكشف",
+            }
+        ),
     )
     report_date = forms.DateField(
         label="تاريخ الكشف",
         widget=forms.DateInput(
             attrs={
                 "type": "date",
-                "class": "w-full border border-gray-300 rounded-md p-2",
+                "class": "w-full border border-gray-300 rounded-md p-2 pl-10",
+                "placeholder": "أدخل تاريخ الكشف",
             }
         ),
     )
