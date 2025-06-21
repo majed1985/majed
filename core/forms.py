@@ -5,14 +5,44 @@ from django.forms.widgets import FileInput
 
 
 class ClearableMultipleFileInput(forms.ClearableFileInput):
-    """Allow selecting multiple files with Django's clearable input."""
+    """Widget يسمح برفع أكثر من ملف دفعة واحدة."""
 
     allow_multiple_selected = True
 
     def __init__(self, attrs=None):
         attrs = attrs or {}
         attrs["multiple"] = True
-        FileInput.__init__(self, attrs)
+        super().__init__(attrs)
+
+
+class MultipleFileField(forms.FileField):
+    """حقل يقبل قائمة من الملفات بدلاً من ملف واحد."""
+
+    widget = ClearableMultipleFileInput
+
+    def clean(self, data, initial=None):
+        if not data and initial:
+            return initial
+        if not data:
+            if self.required:
+                raise forms.ValidationError(self.error_messages["required"], code="required")
+            return []
+
+        if not isinstance(data, (list, tuple)):
+            data = [data]
+
+        cleaned = []
+        errors = []
+        for f in data:
+            try:
+                cleaned.append(super().clean(f, initial))
+            except forms.ValidationError as e:
+                errors.extend(e.error_list)
+
+        if errors:
+            raise forms.ValidationError(errors)
+
+        return cleaned
 
 from .models import Learner, Nationality, Sector
 from .models import RecruitmentEmployee, EmployeeEvaluation
@@ -95,7 +125,7 @@ class UploadEmployeesForm(forms.Form):
 
 
 class RecruitmentReportForm(forms.Form):
-    file = forms.FileField(
+    file = MultipleFileField(
         label="كشف الاستقدام (Excel)",
         widget=ClearableMultipleFileInput(
             attrs={"class": "w-full border border-gray-300 rounded-md p-2"}
