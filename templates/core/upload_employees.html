@@ -8,9 +8,9 @@
 
 <!-- نموذج رفع كشف جديد -->
   <div class="flex items-center justify-center my-8">
-    <div class="max-w-xl mx-auto bg-gradient-to-br from-green-50 via-white to-green-50 rounded-2xl shadow-lg p-8 border border-green-200 w-full animate-fade-in text-right">
-      <h2 class="text-xl font-bold mb-4 text-green-700 flex items-center gap-2"><i class="fa-solid fa-upload"></i> رفع كشف استقدام جديد</h2>
-      <div id="uploadMessages" class="mt-4"></div>
+    <div class="max-w-lg mx-auto bg-white rounded-2xl shadow-lg p-8 border border-gray-200 w-full animate-fade-in text-right">
+      <h2 class="text-2xl font-bold mb-4 text-green-600 flex items-center gap-2"><i class="fa-solid fa-upload"></i> رفع كشف استقدام جديد</h2>
+      <div id="uploadMessages" class="mb-4"></div>
       <form id="uploadForm" method="post" enctype="multipart/form-data" class="space-y-6">
         {% csrf_token %}
         <div class="space-y-2">
@@ -28,14 +28,16 @@
           <i class="fa-regular fa-calendar"></i>
           {{ form.report_date }}
           {{ form.report_date.errors }}
+          <small class="text-gray-500">حدد تاريخ الكشف</small>
       </div>
       <div class="input-icon">
         <label class="block mb-1 font-semibold text-gray-700"><i class="fa-solid fa-layer-group"></i> {{ form.is_haramain.label }}</label>
         <i class="fa-solid fa-layer-group"></i>
         {{ form.is_haramain }}
         {{ form.is_haramain.errors }}
+        <small class="text-gray-500">اختر نوع الكشف</small>
       </div>
-      <button id="submitBtn" type="submit" class="flex items-center justify-center gap-2 px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow mt-6 w-full sm:w-1/3 mx-auto disabled:opacity-50" disabled>
+      <button id="submitBtn" type="submit" class="flex items-center justify-center gap-2 px-6 py-2 bg-green-600 transition-transform hover:scale-105 hover:bg-green-700 text-white font-semibold rounded-xl shadow mt-6 w-full disabled:opacity-50" disabled>
         <i class="fa-solid fa-upload"></i>
         <span>رفع الكشف</span>
       </button>
@@ -181,9 +183,9 @@
     messagesBox.innerHTML = '';
     if (!text) return;
     const div = document.createElement('div');
-    div.className = `mb-4 px-4 py-2 rounded-md shadow flex items-center gap-2 ${type}`;
+    div.className = `mb-4 px-4 py-2 rounded-md shadow flex items-center gap-2 ${type} animate-fade-in`;
     const icon = document.createElement('i');
-    icon.className = type === 'success' ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark';
+    icon.className = type === 'success' ? 'fa-solid fa-circle-check text-green-600 text-xl' : 'fa-solid fa-circle-xmark text-red-600 text-xl';
     div.appendChild(icon);
     const span = document.createElement('span');
     span.textContent = text;
