@@ -77,7 +77,9 @@
     </select>
     <input id="startDate" type="date" class="border rounded p-2 text-sm text-gray-700">
     <input id="endDate" type="date" class="border rounded p-2 text-sm text-gray-700">
-    <button id="filterBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">بحث</button>
+  </div>
+  <div id="loader" class="hidden text-center my-2">
+    <i class="fa-solid fa-spinner fa-spin fa-lg text-green-600"></i>
   </div>
   <div class="overflow-x-auto bg-white rounded shadow">
     <table id="reportsTable" class="min-w-full text-sm text-center text-gray-700">
@@ -138,6 +140,7 @@
   const messagesBox      = document.getElementById('uploadMessages');
   const tableBody        = document.getElementById('reportsTableBody');
   const csrfToken        = form.querySelector('[name=csrfmiddlewaretoken]').value;
+  const loader           = document.getElementById('loader');
 
   function getIcon(filename){
     const ext = filename.split('.').pop().toLowerCase();
@@ -147,6 +150,7 @@
   }
 
   function fetchReports(){
+    loader.classList.remove('hidden');
     const q = document.getElementById('searchInput').value;
     const type = document.getElementById('typeFilter').value;
     const start = document.getElementById('startDate').value;
@@ -190,18 +194,24 @@
           pageLength: 10,
           searching: false
         });
-      });
+      })
+      .finally(() => loader.classList.add('hidden'));
+  }
+
+  function debounce(fn, delay = 300){
+    let timeout;
+    return function(){
+      clearTimeout(timeout);
+      timeout = setTimeout(fn, delay);
+    };
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     fetchReports();
-    document.getElementById('filterBtn').addEventListener('click', fetchReports);
-    ['searchInput','typeFilter','startDate','endDate'].forEach(id => {
-      document.getElementById(id).addEventListener('keypress', e => {
-        if(e.key === 'Enter'){ e.preventDefault(); fetchReports(); }
-      });
-      document.getElementById(id).addEventListener('change', fetchReports);
-    });
+    document.getElementById('searchInput').addEventListener('input', debounce(fetchReports));
+    document.getElementById('typeFilter').addEventListener('change', fetchReports);
+    document.getElementById('startDate').addEventListener('change', fetchReports);
+    document.getElementById('endDate').addEventListener('change', fetchReports);
   });
 
   function showMessage(text, type) {
