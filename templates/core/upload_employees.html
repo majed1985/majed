@@ -64,8 +64,19 @@
   <h2 class="text-xl font-bold mb-4 text-green-700 flex items-center gap-2">
     <i class="fa-solid fa-file-archive"></i> الكشوف المرفوعة
   </h2>
+  <div class="flex flex-wrap items-center gap-3 mb-4">
+    <input id="searchInput" type="text" class="border rounded p-2 w-56" placeholder="بحث باسم الملف أو التاريخ...">
+    <select id="typeFilter" class="border rounded p-2">
+      <option value="">كل الأنواع</option>
+      <option value="true">حرمين</option>
+      <option value="false">غير حرمين</option>
+    </select>
+    <input id="startDate" type="date" class="border rounded p-2">
+    <input id="endDate" type="date" class="border rounded p-2">
+    <button id="filterBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">بحث</button>
+  </div>
   <div class="overflow-x-auto bg-white rounded shadow">
-    <table class="min-w-full text-sm text-center">
+    <table id="reportsTable" class="min-w-full text-sm text-center">
       <thead class="bg-gray-50">
         <tr>
           <th class="px-3 py-2">اسم الملف</th>
@@ -78,9 +89,9 @@
       <tbody id="reportsTableBody">
         {% for rep in reports_list %}
         <tr class="odd:bg-gray-50">
-          <td class="px-3 py-2 flex items-center gap-2">
+          <td class="px-3 py-2 flex items-center gap-2" title="{{ rep.filename }}">
             <i class="fa-solid {{ rep.filename|file_icon }}"></i>
-            {{ rep.filename }}
+            {{ rep.filename|truncate_middle:40 }}
           </td>
           <td class="px-3 py-2">{{ rep.uploaded_at|date:"Y-m-d H:i" }}</td>
           <td class="px-3 py-2">{{ rep.file_size|filesizeformat }}</td>
@@ -110,6 +121,10 @@
   </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
 <script>
   // كود رفع الملف مع البار المتحرك
   const form             = document.getElementById('uploadForm');
@@ -128,7 +143,17 @@
   }
 
   function fetchReports(){
-    fetch('{% url "core:reports_json" %}')
+    const q = document.getElementById('searchInput').value;
+    const type = document.getElementById('typeFilter').value;
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    const params = new URLSearchParams();
+    if(q) params.append('q', q);
+    if(type) params.append('type', type);
+    if(start) params.append('start', start);
+    if(end) params.append('end', end);
+
+    fetch('{% url "core:reports_json" %}?'+params.toString())
       .then(r => r.json())
       .then(data => {
         tableBody.innerHTML = '';
@@ -140,7 +165,7 @@
           const tr = document.createElement('tr');
           tr.className = 'odd:bg-gray-50';
           tr.innerHTML = `
-            <td class="px-3 py-2 flex items-center gap-2"><i class="fa-solid ${getIcon(rep.filename)}"></i> ${rep.filename}</td>
+            <td class="px-3 py-2 flex items-center gap-2" title="${rep.filename}"><i class="fa-solid ${getIcon(rep.filename)}"></i> ${rep.filename.length>40?rep.filename.slice(0,18)+'...'+rep.filename.slice(-18):rep.filename}</td>
             <td class="px-3 py-2">${rep.uploaded_at}</td>
             <td class="px-3 py-2">${rep.file_size_formatted}</td>
             <td class="px-3 py-2">${rep.is_haramain ? 'حرمين' : 'غير حرمين'}</td>
@@ -153,10 +178,27 @@
               </form>`;
           tableBody.appendChild(tr);
         });
+        if ( $.fn.DataTable.isDataTable('#reportsTable') ) {
+          $('#reportsTable').DataTable().destroy();
+        }
+        $('#reportsTable').DataTable({
+          order: [[1, 'desc']],
+          pageLength: 10,
+          searching: false
+        });
       });
   }
 
-  document.addEventListener('DOMContentLoaded', fetchReports);
+  document.addEventListener('DOMContentLoaded', () => {
+    fetchReports();
+    document.getElementById('filterBtn').addEventListener('click', fetchReports);
+    ['searchInput','typeFilter','startDate','endDate'].forEach(id => {
+      document.getElementById(id).addEventListener('keypress', e => {
+        if(e.key === 'Enter'){ e.preventDefault(); fetchReports(); }
+      });
+      document.getElementById(id).addEventListener('change', fetchReports);
+    });
+  });
 
   function showMessage(text, type) {
     messagesBox.innerHTML = '';

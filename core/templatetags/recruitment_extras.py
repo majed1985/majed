@@ -21,3 +21,18 @@ def file_icon(filename: str) -> str:
     if ext == "pdf":
         return "fa-file-pdf"
     return "fa-file"
+
+
+@register.filter
+def truncate_middle(value: str, arg: int = 30) -> str:
+    """Truncate long strings keeping start and end."""
+    if not isinstance(value, str):
+        return value
+    try:
+        length = int(arg)
+    except (TypeError, ValueError):
+        length = 30
+    if len(value) <= length:
+        return value
+    half = max(1, (length - 3) // 2)
+    return f"{value[:half]}...{value[-half:]}"

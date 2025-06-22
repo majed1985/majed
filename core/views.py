@@ -538,8 +538,23 @@ def tree_filter_results(request):
 
 
 def reports_json(request):
-    """Return all recruitment reports as JSON for dynamic tables."""
-    qs = RecruitmentReport.objects.all().order_by("-uploaded_at")
+    """Return recruitment reports as JSON with optional filtering."""
+    qs = RecruitmentReport.objects.all()
+    search = request.GET.get("q")
+    filter_type = request.GET.get("type")
+    start_date = request.GET.get("start")
+    end_date = request.GET.get("end")
+
+    if search:
+        qs = qs.filter(filename__icontains=search)
+    if filter_type in ["true", "false"]:
+        qs = qs.filter(is_haramain=(filter_type == "true"))
+    if start_date:
+        qs = qs.filter(report_date__gte=start_date)
+    if end_date:
+        qs = qs.filter(report_date__lte=end_date)
+
+    qs = qs.order_by("-uploaded_at")
     data = [
         {
             "id": r.id,
