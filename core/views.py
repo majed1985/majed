@@ -12,6 +12,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.urls import reverse
 from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
+from django.template.defaultfilters import filesizeformat
 import re
 from openpyxl import load_workbook
 import pandas as pd
@@ -281,6 +282,7 @@ def upload_employees(request):
                     filename=excel.name,
                     uploaded_by=request.user if request.user.is_authenticated else None,
                     report_date=report_date,
+                    file_size=excel.size,
                     is_haramain=is_haramain,
                     columns=columns,
                     rows=rows,
@@ -338,9 +340,12 @@ def upload_employees(request):
         "latest": latest,
     }
 
+    reports_list = reports_qs
+
     context = {
         "form": form,
         "reports": reports,
+        "reports_list": reports_list,
         "filter_type": filter_type,
         "stats": stats,
         "year": year,
@@ -526,6 +531,24 @@ def tree_filter_results(request):
             "filename": r.filename,
             "report_date": r.report_date.strftime("%Y-%m-%d"),
             "is_haramain": r.is_haramain,
+        }
+        for r in qs
+    ]
+    return JsonResponse(data, safe=False)
+
+
+def reports_json(request):
+    """Return all recruitment reports as JSON for dynamic tables."""
+    qs = RecruitmentReport.objects.all().order_by("-uploaded_at")
+    data = [
+        {
+            "id": r.id,
+            "filename": r.filename,
+            "uploaded_at": r.uploaded_at.strftime("%Y-%m-%d %H:%M"),
+            "file_size": r.file_size,
+            "file_size_formatted": filesizeformat(r.file_size),
+            "is_haramain": r.is_haramain,
+            "report_date": r.report_date.strftime("%Y-%m-%d"),
         }
         for r in qs
     ]
