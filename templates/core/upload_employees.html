@@ -4,42 +4,47 @@
 
 {% block content %}
 
-<h1 class="text-4xl font-bold mb-8 text-center text-[#119383]">رفع وأرشفة كشوف الاستقدام</h1>
+<h1 class="text-3xl font-bold mb-6 text-center text-[#119383]">رفع وأرشفة كشوف الاستقدام</h1>
 
 <!-- نموذج رفع كشف جديد -->
-  <div class="flex items-center justify-center my-8">
-    <div class="max-w-[360px] mx-auto bg-white rounded-2xl shadow-lg p-8 border border-gray-200 w-full animate-fade-in text-right">
-      <h2 class="text-2xl font-bold mb-4 text-green-600 flex items-center gap-2"><i class="fa-solid fa-upload"></i> رفع كشف استقدام جديد</h2>
-      <div id="uploadMessages" class="mb-4"></div>
-      <form id="uploadForm" method="post" enctype="multipart/form-data" class="space-y-6">
-        {% csrf_token %}
-        <div class="space-y-2">
-          <label class="block mb-1 font-semibold text-gray-700"><i class="fa-solid fa-file-excel"></i> {{ form.file.label }}</label>
-          <div id="dropArea" class="drop-area">
-            {{ form.file }}
-            <p class="text-gray-500 text-sm mt-2">اسحب الملف هنا أو اضغط لاختياره</p>
-          </div>
-          <div id="fileNames" class="text-gray-600 text-sm"></div>
-          {{ form.file.errors }}
-          <small class="text-gray-500">الملفات المسموحة: xlsx, xls (الحد الأقصى: 5MB)</small>
-        </div>
-        <div class="input-icon">
-          <label class="block mb-1 font-semibold text-gray-700"><i class="fa-solid fa-calendar-days"></i> {{ form.report_date.label }}</label>
-          <i class="fa-regular fa-calendar"></i>
-          {{ form.report_date }}
-          {{ form.report_date.errors }}
-          <small class="text-gray-500">حدد تاريخ الكشف</small>
+<div class="flex items-center justify-center my-8">
+  <div class="max-w-md w-full bg-white rounded-xl border border-green-200 shadow-lg p-6 animate-fade-in text-right">
+    <h2 class="text-xl font-bold mb-4 text-green-700 flex items-center gap-2">
+      <i class="fa-solid fa-upload"></i> رفع كشف استقدام جديد
+    </h2>
+    <div id="uploadMessages"></div>
+    <form id="uploadForm" method="post" enctype="multipart/form-data" class="space-y-5">
+      {% csrf_token %}
+      <!-- رفع الملف -->
+      <div>
+        <label class="block mb-1 font-semibold text-gray-700">
+          <i class="fa-solid fa-file-excel"></i> {{ form.file.label }}
+        </label>
+        {{ form.file }}
+        {{ form.file.errors }}
+        <small class="text-gray-500">الملفات المسموحة: xlsx, xls (5MB الحد الأقصى)</small>
       </div>
-      <div class="input-icon">
-        <label class="block mb-1 font-semibold text-gray-700"><i class="fa-solid fa-layer-group"></i> {{ form.is_haramain.label }}</label>
-        <i class="fa-solid fa-layer-group"></i>
+      <!-- تاريخ الكشف -->
+      <div>
+        <label class="block mb-1 font-semibold text-gray-700">
+          <i class="fa-solid fa-calendar-days"></i> {{ form.report_date.label }}
+        </label>
+        <input type="date" name="report_date" class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-500" required>
+        {{ form.report_date.errors }}
+      </div>
+      <!-- نوع الكشف -->
+      <div>
+        <label class="block mb-1 font-semibold text-gray-700">
+          <i class="fa-solid fa-layer-group"></i> {{ form.is_haramain.label }}
+        </label>
         {{ form.is_haramain }}
         {{ form.is_haramain.errors }}
-        <small class="text-gray-500">اختر نوع الكشف</small>
       </div>
-      <button id="submitBtn" type="submit" class="flex items-center justify-center gap-2 px-6 py-2 bg-green-600 transition-transform hover:scale-105 hover:bg-green-700 text-white font-semibold rounded-xl shadow mt-6 w-full disabled:opacity-50" disabled>
+      <!-- زر رفع الكشف -->
+      <button type="submit"
+        class="w-full py-3 mt-2 bg-green-700 hover:bg-green-800 text-white font-bold rounded-lg shadow flex items-center justify-center gap-2 text-lg">
         <i class="fa-solid fa-upload"></i>
-        <span>رفع الكشف</span>
+        رفع الكشف
       </button>
       <div id="uploadProgressContainer" class="hidden mt-4">
         <div class="w-full bg-gray-200 rounded">
@@ -48,7 +53,7 @@
         <p id="uploadProgressText" class="text-center text-xs mt-1 text-gray-700">0%</p>
       </div>
       <p class="text-center text-gray-500 text-sm mt-2">
-        بعد اختيار الملف وتحديد النوع والتاريخ، اضغط على زر رفع لإضافة الكشف للأرشيف
+        بعد اختيار الملف وتحديد النوع والتاريخ، اضغط على زر رفع لإضافة الكشف للأرشيف.
       </p>
     </form>
   </div>
@@ -56,145 +61,27 @@
 
 <!-- عرض الكشوفات المؤرشفة -->
 <div class="my-10">
-  <h2 class="text-xl font-bold mb-4 text-gray-700">الكشوفات المؤرشفة</h2>
-  <div class="mb-4 flex flex-wrap items-center gap-2 text-sm bg-white p-3 rounded shadow">
-    <form method="get" class="flex flex-wrap items-center gap-2 w-full">
-      <label for="q" class="font-semibold">بحث:</label>
-      <input type="text" name="q" id="q" value="{{ search }}" class="border rounded p-1" placeholder="اسم الملف">
-      <label for="year" class="font-semibold">السنة:</label>
-      <input type="number" name="year" id="year" value="{{ year }}" class="border rounded p-1 w-20">
-      <label for="month" class="font-semibold">الشهر:</label>
-      <input type="number" name="month" id="month" value="{{ month }}" class="border rounded p-1 w-16">
-      <label for="type" class="font-semibold">نوع الكشف:</label>
-      <select name="type" id="type" class="border rounded p-1">
-        <option value="" {% if not filter_type %}selected{% endif %}>الكل</option>
-        <option value="true" {% if filter_type == 'true' %}selected{% endif %}>حرمين</option>
-        <option value="false" {% if filter_type == 'false' %}selected{% endif %}>غير حرمين</option>
-      </select>
-      <button type="submit" class="px-4 py-1 bg-blue-600 text-white rounded">بحث</button>
-    </form>
-    <div class="flex items-center gap-4 mt-2 w-full">
-      <div>إجمالي الكشوف: <span class="font-bold">{{ stats.total_reports }}</span></div>
-      <div>إجمالي الأفراد: <span class="font-bold">{{ stats.total_employees }}</span></div>
-      {% if stats.latest %}
-      <div>آخر كشف: <span class="font-bold">{{ stats.latest.filename }}</span> بتاريخ {{ stats.latest.report_date }}</div>
-      {% endif %}
-      <button type="button" onclick="window.print()" class="ml-auto px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">طباعة</button>
-    </div>
-  </div>
-  {% if reports %}
-    {% for year, months in reports.items %}
-      <details class="mb-3">
-        <summary class="font-bold cursor-pointer text-lg text-blue-700 flex items-center gap-2">
-          <i class="fa-regular fa-calendar"></i>
-          سنة {{ year }}
-        </summary>
-        {% for month, days in months.items %}
-          <details class="ml-4 mb-2">
-            <summary class="font-semibold cursor-pointer text-green-700 flex items-center gap-2">
-              <i class="fa-regular fa-calendar-days"></i>
-              شهر {{ month }}
-            </summary>
-            {% for day, types in days.items %}
-              <details class="ml-8 mb-2">
-                <summary class="cursor-pointer text-blue-900 flex items-center gap-2">
-                  <i class="fa-regular fa-calendar-day"></i>
-                  يوم {{ day }}
-                </summary>
-                {% for type, files in types.items %}
-                  <details class="ml-12 mb-1">
-                    <summary class="cursor-pointer text-[#19786a] flex items-center gap-2">
-                      <i class="fa-regular fa-folder-open"></i>
-                      {{ type|yesno:"حرمين,غير حرمين" }}
-                    </summary>
-                    {% for file in files %}
-                      <details class="ml-12 mb-1">
-                        <summary class="cursor-pointer text-[#19786a] flex items-center gap-2">
-                          <i class="fa-regular fa-folder-open"></i>
-                          {{ file.filename }}
-                          <a href="{% url 'core:export_report' file.pk %}" class="text-blue-600 hover:underline text-xs mr-2" title="تصدير"><i class="fa-solid fa-file-export"></i></a>
-                          <form action="{% url 'core:delete_report' file.pk %}" method="post" class="inline">
-                            {% csrf_token %}
-                            <button type="submit" class="text-red-600 text-xs" onclick="return confirm('حذف الكشف؟');"><i class="fa-solid fa-trash"></i></button>
-                          </form>
-                        </summary>
-                        <div class="overflow-x-auto mt-2 mb-5 bg-white border rounded-lg shadow">
-                          <table class="min-w-full divide-y divide-gray-200 text-sm">
-                            <thead>
-                              <tr>
-                                <th class="px-2 py-1 border bg-gray-50 text-xs font-semibold text-gray-700 whitespace-nowrap">#</th>
-                                {% for col in file.columns %}
-                                  <th class="px-2 py-1 border bg-gray-50 text-xs font-semibold text-gray-700 whitespace-nowrap">{{ col }}</th>
-                                {% endfor %}
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {% for row in file.rows %}
-                              <tr class="odd:bg-gray-50">
-                                <td class="px-2 py-1 border text-gray-900 whitespace-nowrap">{{ forloop.counter }}</td>
-                                {% for col in file.columns %}
-                                  <td class="px-2 py-1 border text-gray-900 whitespace-nowrap">{{ row|get_item:col }}</td>
-                                {% endfor %}
-                              </tr>
-                              {% endfor %}
-                            </tbody>
-                          </table>
-                        </div>
-                      </details>
-                    {% endfor %}
-                  </details>
-                {% endfor %}
-              </details>
-            {% endfor %}
-          </details>
-        {% endfor %}
-      </details>
-    {% endfor %}
-  {% else %}
-    <div class="text-center text-gray-500">لا توجد كشوفات بهذا النوع.</div>
-  {% endif %}
+  {{ block.super }}
 </div>
+
 <script>
+  // كود رفع الملف مع البار المتحرك
   const form             = document.getElementById('uploadForm');
   const progressBox      = document.getElementById('uploadProgressContainer');
   const progressBar      = document.getElementById('uploadProgressBar');
   const progressText     = document.getElementById('uploadProgressText');
   const messagesBox      = document.getElementById('uploadMessages');
-  const fileInput        = document.getElementById('id_file');
-  const dropArea         = document.getElementById('dropArea');
-  const fileNames        = document.getElementById('fileNames');
-  const submitBtn        = document.getElementById('submitBtn');
-
-  function updateFileNames() {
-    const names = Array.from(fileInput.files).map(f => f.name).join(', ');
-    fileNames.textContent = names;
-    checkValid();
-  }
-
-  function checkValid() {
-    if (!submitBtn) return;
-    const hasFiles = fileInput.files && fileInput.files.length > 0;
-    const dateFilled = form.report_date.value;
-    const typeFilled = form.is_haramain.value;
-    submitBtn.disabled = !(hasFiles && dateFilled && typeFilled);
-  }
 
   function showMessage(text, type) {
     messagesBox.innerHTML = '';
     if (!text) return;
     const div = document.createElement('div');
-    div.className = `mb-4 px-4 py-2 rounded-md shadow flex items-center gap-2 ${type} animate-fade-in`;
-    const icon = document.createElement('i');
-    icon.className = type === 'success' ? 'fa-solid fa-circle-check text-green-600 text-xl' : 'fa-solid fa-circle-xmark text-red-600 text-xl';
-    div.appendChild(icon);
-    const span = document.createElement('span');
-    span.textContent = text;
-    div.appendChild(span);
+    div.className = `mb-4 px-4 py-2 rounded-md shadow ${type}`;
+    div.textContent = text;
     messagesBox.appendChild(div);
   }
 
   if (form) {
-    updateFileNames();
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       const xhr = new XMLHttpRequest();
@@ -218,7 +105,7 @@
           try { data = JSON.parse(xhr.responseText); } catch (err) {}
           if (data.success) { showMessage(data.success, 'success'); }
           if (data.error) { showMessage(data.error, 'error'); }
-          if (data.success && !data.error) { form.reset(); updateFileNames(); }
+          if (data.success && !data.error) { form.reset(); }
         } else {
           let msg = 'حدث خطأ أثناء الرفع';
           try { msg = JSON.parse(xhr.responseText).error || msg; } catch (err) {}
@@ -233,26 +120,6 @@
       };
       xhr.send(formData);
     });
-
-    fileInput.addEventListener('change', updateFileNames);
-    form.report_date.addEventListener('change', checkValid);
-    form.is_haramain.addEventListener('change', checkValid);
-
-    if (dropArea) {
-      ['dragenter', 'dragover'].forEach(evt => dropArea.addEventListener(evt, e => {
-        e.preventDefault();
-        dropArea.classList.add('dragover');
-      }));
-      ['dragleave', 'drop'].forEach(evt => dropArea.addEventListener(evt, e => {
-        e.preventDefault();
-        dropArea.classList.remove('dragover');
-      }));
-      dropArea.addEventListener('drop', e => {
-        fileInput.files = e.dataTransfer.files;
-        updateFileNames();
-      });
-      dropArea.addEventListener('click', () => fileInput.click());
-    }
   }
 </script>
 
