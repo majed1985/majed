@@ -1,13 +1,17 @@
 {% extends 'base.html' %}
 {% load recruitment_extras %}
+{% load static %}
 {% block title %}أرشفة كشوفات الاستقدام{% endblock %}
 
 {% block content %}
 
 <h1 class="text-3xl font-bold mb-6 text-center text-[#119383]">رفع وأرشفة كشوف الاستقدام</h1>
+<div class="flex justify-center -mt-4">
+  <img src="{% static 'images/recruitment_portal.svg' %}" alt="شعار الاستقدام" class="h-16" />
+</div>
 
 <!-- نموذج رفع كشف جديد -->
-<div class="flex items-center justify-center my-8">
+<div class="flex items-center justify-center my-10">
   <div class="max-w-sm w-full bg-white rounded-xl border border-green-200 shadow-lg p-6 animate-fade-in text-right">
     <h2 class="text-xl font-bold mb-4 text-green-700 flex items-center gap-2">
       <i class="fa-solid fa-upload"></i> رفع كشف استقدام جديد
@@ -17,7 +21,7 @@
       {% csrf_token %}
       <!-- رفع الملف -->
       <div>
-        <label class="block mb-1 font-semibold text-gray-700">
+        <label class="block mb-1 text-sm text-gray-600">
           <i class="fa-solid fa-file-excel"></i> {{ form.file.label }}
         </label>
         {{ form.file }}
@@ -26,7 +30,7 @@
       </div>
       <!-- تاريخ الكشف -->
       <div>
-        <label class="block mb-1 font-semibold text-gray-700">
+        <label class="block mb-1 text-sm text-gray-600">
           <i class="fa-solid fa-calendar-days"></i> {{ form.report_date.label }}
         </label>
         <input type="date" name="report_date" class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-500" required>
@@ -34,7 +38,7 @@
       </div>
       <!-- نوع الكشف -->
       <div>
-        <label class="block mb-1 font-semibold text-gray-700">
+        <label class="block mb-1 text-sm text-gray-600">
           <i class="fa-solid fa-layer-group"></i> {{ form.is_haramain.label }}
         </label>
         {{ form.is_haramain }}
@@ -60,23 +64,23 @@
 </div>
 
 <!-- عرض الكشوفات المؤرشفة -->
-<div class="my-10 max-w-4xl mx-auto">
+<div class="mt-12 max-w-4xl mx-auto">
   <h2 class="text-xl font-bold mb-4 text-green-700 flex items-center gap-2">
     <i class="fa-solid fa-file-archive"></i> الكشوف المرفوعة
   </h2>
-  <div class="flex flex-wrap items-center gap-3 mb-4">
-    <input id="searchInput" type="text" class="border rounded p-2 w-56" placeholder="بحث باسم الملف أو التاريخ...">
-    <select id="typeFilter" class="border rounded p-2">
+  <div class="flex flex-wrap items-center gap-3 mb-4 text-sm text-gray-700">
+    <input id="searchInput" type="text" class="border rounded p-2 w-56 text-sm text-gray-700" placeholder="بحث باسم الملف أو التاريخ...">
+    <select id="typeFilter" class="border rounded p-2 text-sm text-gray-700">
       <option value="">كل الأنواع</option>
       <option value="true">حرمين</option>
       <option value="false">غير حرمين</option>
     </select>
-    <input id="startDate" type="date" class="border rounded p-2">
-    <input id="endDate" type="date" class="border rounded p-2">
+    <input id="startDate" type="date" class="border rounded p-2 text-sm text-gray-700">
+    <input id="endDate" type="date" class="border rounded p-2 text-sm text-gray-700">
     <button id="filterBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">بحث</button>
   </div>
   <div class="overflow-x-auto bg-white rounded shadow">
-    <table id="reportsTable" class="min-w-full text-sm text-center">
+    <table id="reportsTable" class="min-w-full text-sm text-center text-gray-700">
       <thead class="bg-gray-50">
         <tr>
           <th class="px-3 py-2">اسم الملف</th>
