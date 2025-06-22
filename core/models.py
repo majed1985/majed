@@ -222,6 +222,7 @@ class RecruitmentReport(models.Model):
         verbose_name="تم الرفع بواسطة",
     )
     report_date = models.DateField("تاريخ الكشف")
+    file_size = models.PositiveIntegerField("حجم الملف (بايت)", default=0)
     is_haramain = models.BooleanField("حرمين", default=False)
     columns = models.JSONField("الأعمدة")
     rows = models.JSONField("الصفوف")

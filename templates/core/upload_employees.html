@@ -60,8 +60,54 @@
 </div>
 
 <!-- عرض الكشوفات المؤرشفة -->
-<div class="my-10">
-  {{ block.super }}
+<div class="my-10 max-w-4xl mx-auto">
+  <h2 class="text-xl font-bold mb-4 text-green-700 flex items-center gap-2">
+    <i class="fa-solid fa-file-archive"></i> الكشوف المرفوعة
+  </h2>
+  <div class="overflow-x-auto bg-white rounded shadow">
+    <table class="min-w-full text-sm text-center">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-3 py-2">اسم الملف</th>
+          <th class="px-3 py-2">تاريخ الرفع</th>
+          <th class="px-3 py-2">الحجم</th>
+          <th class="px-3 py-2">نوع الكشف</th>
+          <th class="px-3 py-2">العمليات</th>
+        </tr>
+      </thead>
+      <tbody id="reportsTableBody">
+        {% for rep in reports_list %}
+        <tr class="odd:bg-gray-50">
+          <td class="px-3 py-2 flex items-center gap-2">
+            <i class="fa-solid {{ rep.filename|file_icon }}"></i>
+            {{ rep.filename }}
+          </td>
+          <td class="px-3 py-2">{{ rep.uploaded_at|date:"Y-m-d H:i" }}</td>
+          <td class="px-3 py-2">{{ rep.file_size|filesizeformat }}</td>
+          <td class="px-3 py-2">{{ rep.is_haramain|yesno:"حرمين,غير حرمين" }}</td>
+          <td class="px-3 py-2 space-x-1 space-x-reverse">
+            <a href="{% url 'core:export_report' rep.id %}" class="text-green-600 hover:text-green-800" title="تحميل">
+              <i class="fa-solid fa-download"></i>
+            </a>
+            <a href="{% url 'core:report_detail' rep.id %}" target="_blank" class="text-blue-600 hover:text-blue-800" title="معاينة">
+              <i class="fa-solid fa-eye"></i>
+            </a>
+            <form method="post" action="{% url 'core:delete_report' rep.id %}" class="inline">
+              {% csrf_token %}
+              <button type="submit" class="text-red-600 hover:text-red-800" title="حذف" onclick="return confirm('هل أنت متأكد من الحذف؟')">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="p-4 text-gray-500">لا توجد ملفات مرفوعة بعد.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <script>
@@ -71,6 +117,46 @@
   const progressBar      = document.getElementById('uploadProgressBar');
   const progressText     = document.getElementById('uploadProgressText');
   const messagesBox      = document.getElementById('uploadMessages');
+  const tableBody        = document.getElementById('reportsTableBody');
+  const csrfToken        = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  function getIcon(filename){
+    const ext = filename.split('.').pop().toLowerCase();
+    if(['xls','xlsx'].includes(ext)) return 'fa-file-excel';
+    if(ext === 'pdf') return 'fa-file-pdf';
+    return 'fa-file';
+  }
+
+  function fetchReports(){
+    fetch('{% url "core:reports_json" %}')
+      .then(r => r.json())
+      .then(data => {
+        tableBody.innerHTML = '';
+        if(!data.length){
+          tableBody.innerHTML = '<tr><td colspan="5" class="p-4 text-gray-500">لا توجد ملفات مرفوعة بعد.</td></tr>';
+          return;
+        }
+        data.forEach(rep => {
+          const tr = document.createElement('tr');
+          tr.className = 'odd:bg-gray-50';
+          tr.innerHTML = `
+            <td class="px-3 py-2 flex items-center gap-2"><i class="fa-solid ${getIcon(rep.filename)}"></i> ${rep.filename}</td>
+            <td class="px-3 py-2">${rep.uploaded_at}</td>
+            <td class="px-3 py-2">${rep.file_size_formatted}</td>
+            <td class="px-3 py-2">${rep.is_haramain ? 'حرمين' : 'غير حرمين'}</td>
+            <td class="px-3 py-2 space-x-1 space-x-reverse">
+              <a href="/recruitment/report/${rep.id}/export/" class="text-green-600 hover:text-green-800" title="تحميل"><i class="fa-solid fa-download"></i></a>
+              <a href="/recruitment/report/${rep.id}/" target="_blank" class="text-blue-600 hover:text-blue-800" title="معاينة"><i class="fa-solid fa-eye"></i></a>
+              <form method="post" action="/recruitment/report/${rep.id}/delete/" class="inline">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                <button type="submit" class="text-red-600 hover:text-red-800" title="حذف" onclick="return confirm('هل أنت متأكد من الحذف؟')"><i class="fa-solid fa-trash"></i></button>
+              </form>`;
+          tableBody.appendChild(tr);
+        });
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', fetchReports);
 
   function showMessage(text, type) {
     messagesBox.innerHTML = '';
@@ -105,7 +191,7 @@
           try { data = JSON.parse(xhr.responseText); } catch (err) {}
           if (data.success) { showMessage(data.success, 'success'); }
           if (data.error) { showMessage(data.error, 'error'); }
-          if (data.success && !data.error) { form.reset(); }
+          if (data.success && !data.error) { form.reset(); fetchReports(); }
         } else {
           let msg = 'حدث خطأ أثناء الرفع';
           try { msg = JSON.parse(xhr.responseText).error || msg; } catch (err) {}
