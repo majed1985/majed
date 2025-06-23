@@ -37,6 +37,10 @@ body{
   direction: ltr;
 }
 
+#uploadProgressBar {
+  transition: width 0.3s ease;
+}
+
 .drop-area {
   border: 2px dashed #a7f3d0;
   background: #f0fdf4;
@@ -44,6 +48,10 @@ body{
   text-align: center;
   border-radius: 0.5rem;
   transition: background-color 0.2s;
+}
+
+.drop-area input[type=file]{
+  display:none;
 }
 
 .drop-area.dragover {
@@ -90,4 +98,20 @@ input:focus, select:focus, textarea:focus {
 }
 .icon-not-haramain{
   color:#9ca3af;
+}
+
+#toastContainer{
+  position:fixed;
+  top:1rem;
+  right:1rem;
+  z-index:1000;
+}
+
+@keyframes fadeOut {
+  from{opacity:1;transform:translateY(0);}
+  to{opacity:0;transform:translateY(-20px);}
+}
+
+.toast{
+  animation: fadeIn 0.5s ease, fadeOut 0.5s ease 3s forwards;
 }
