@@ -44,8 +44,14 @@ class MultipleFileField(forms.FileField):
 
         return cleaned
 
-from .models import Learner, Nationality, Sector
-from .models import RecruitmentEmployee, EmployeeEvaluation
+from .models import (
+    Learner,
+    Nationality,
+    Sector,
+    RecruitmentEmployee,
+    EmployeeEvaluation,
+    RecruitmentReport,
+)
 
 
 # ـــــــ الخطوة 1: المعلومات الشخصية ـــــــ #
