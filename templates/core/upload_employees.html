@@ -120,6 +120,9 @@
             <a href="{% url 'core:report_detail' rep.id %}" target="_blank" class="action-btn text-blue-600 hover:text-blue-800" title="معاينة">
               <i class="fa-solid fa-eye"></i>
             </a>
+            <a href="{% url 'core:edit_report' rep.id %}" class="action-btn text-yellow-600 hover:text-yellow-800" title="تعديل">
+              <i class="fa-solid fa-edit"></i>
+            </a>
             <form method="post" action="{% url 'core:delete_report' rep.id %}" class="inline">
               {% csrf_token %}
               <button type="submit" class="action-btn text-red-600 hover:text-red-800" title="حذف" onclick="return confirm('هل أنت متأكد من الحذف؟')">
@@ -138,6 +141,7 @@
         {% endfor %}
       </tbody>
     </table>
+    <div id="tableInfo" class="text-sm text-gray-700 py-2 px-3"></div>
   </div>
 </div>
 
@@ -157,6 +161,7 @@
   const fileInput        = document.getElementById('id_file');
   const filesList        = document.getElementById('filesList');
   const tableBody        = document.getElementById('reportsTableBody');
+  const tableInfo        = document.getElementById('tableInfo');
   const csrfToken        = form.querySelector('[name=csrfmiddlewaretoken]').value;
   const loader           = document.getElementById('loader');
 
@@ -201,6 +206,7 @@
             <td class="px-3 py-2 space-x-1 space-x-reverse">
               <a href="/recruitment/report/${rep.id}/export/" class="action-btn text-green-600 hover:text-green-800" title="تحميل"><i class="fa-solid fa-download"></i></a>
               <a href="/recruitment/report/${rep.id}/" target="_blank" class="action-btn text-blue-600 hover:text-blue-800" title="معاينة"><i class="fa-solid fa-eye"></i></a>
+              <a href="/recruitment/report/${rep.id}/edit/" class="action-btn text-yellow-600 hover:text-yellow-800" title="تعديل"><i class="fa-solid fa-edit"></i></a>
               <form method="post" action="/recruitment/report/${rep.id}/delete/" class="inline">
                 <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
                 <button type="submit" class="action-btn text-red-600 hover:text-red-800" title="حذف" onclick="return confirm('هل أنت متأكد من الحذف؟')"><i class="fa-solid fa-trash"></i></button>
@@ -210,10 +216,20 @@
         if ( $.fn.DataTable.isDataTable('#reportsTable') ) {
           $('#reportsTable').DataTable().destroy();
         }
-        $('#reportsTable').DataTable({
+        const table = $('#reportsTable').DataTable({
           order: [[1, 'desc']],
           pageLength: 10,
-          searching: false
+          searching: false,
+          ordering: true,
+          info: true,
+          language: {
+            info: 'إجمالي _TOTAL_ ملف (عرض _START_ إلى _END_)',
+            infoEmpty: 'لا توجد ملفات'
+          }
+        });
+        updateTableInfo(table);
+        table.on('draw', function(){
+          updateTableInfo(table);
         });
       })
       .finally(() => loader.classList.add('hidden'));
@@ -225,6 +241,12 @@
       clearTimeout(timeout);
       timeout = setTimeout(fn, delay);
     };
+  }
+
+  function updateTableInfo(table){
+    if(!tableInfo) return;
+    const info = table.page.info();
+    tableInfo.textContent = `إجمالي الملفات: ${info.recordsTotal} - بعد التصفية: ${info.recordsDisplay}`;
   }
 
   document.addEventListener('DOMContentLoaded', () => {

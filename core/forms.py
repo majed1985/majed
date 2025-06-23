@@ -157,6 +157,17 @@ class RecruitmentReportForm(forms.Form):
     )
 
 
+class RecruitmentReportEditForm(forms.ModelForm):
+    class Meta:
+        model = RecruitmentReport
+        fields = ["filename", "report_date", "is_haramain"]
+        widgets = {
+            "report_date": forms.DateInput(attrs={"type": "date", "class": "w-full border border-gray-300 rounded-md p-2"}),
+            "filename": forms.TextInput(attrs={"class": "w-full border border-gray-300 rounded-md p-2"}),
+            "is_haramain": forms.Select(attrs={"class": "w-full border border-gray-300 rounded-md p-2"}),
+        }
+
+
 class EmployeeEvaluationForm(forms.ModelForm):
     class Meta:
         model = EmployeeEvaluation
