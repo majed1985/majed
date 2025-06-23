@@ -17,6 +17,7 @@
       <i class="fa-solid fa-upload"></i> رفع كشف استقدام جديد
     </h2>
     <div id="uploadMessages"></div>
+    <div id="toastContainer"></div>
     <form id="uploadForm" method="post" enctype="multipart/form-data" class="space-y-5">
       {% csrf_token %}
       <!-- رفع الملف -->
@@ -24,7 +25,11 @@
         <label class="block mb-1 text-sm text-gray-600">
           <i class="fa-solid fa-file-excel"></i> {{ form.file.label }}
         </label>
-        {{ form.file }}
+        <div id="dropArea" class="drop-area cursor-pointer">
+          <p class="text-sm text-gray-600">اسحب الملفات هنا أو انقر للاختيار</p>
+          {{ form.file }}
+        </div>
+        <div id="filesList" class="text-sm mt-2"></div>
         {{ form.file.errors }}
         <small class="text-gray-500">الملفات المسموحة: xlsx, xls (5MB الحد الأقصى)</small>
       </div>
@@ -146,7 +151,11 @@
   const progressBox      = document.getElementById('uploadProgressContainer');
   const progressBar      = document.getElementById('uploadProgressBar');
   const progressText     = document.getElementById('uploadProgressText');
+  const toastContainer   = document.getElementById('toastContainer');
   const messagesBox      = document.getElementById('uploadMessages');
+  const dropArea         = document.getElementById('dropArea');
+  const fileInput        = document.getElementById('id_file');
+  const filesList        = document.getElementById('filesList');
   const tableBody        = document.getElementById('reportsTableBody');
   const csrfToken        = form.querySelector('[name=csrfmiddlewaretoken]').value;
   const loader           = document.getElementById('loader');
@@ -224,15 +233,37 @@
     document.getElementById('typeFilter').addEventListener('change', fetchReports);
     document.getElementById('startDate').addEventListener('change', fetchReports);
     document.getElementById('endDate').addEventListener('change', fetchReports);
+
+    if(dropArea && fileInput){
+      dropArea.addEventListener('click', () => fileInput.click());
+      ['dragenter','dragover'].forEach(evt => {
+        dropArea.addEventListener(evt, e => {e.preventDefault(); dropArea.classList.add('dragover');});
+      });
+      ['dragleave','drop'].forEach(evt => {
+        dropArea.addEventListener(evt, e => {e.preventDefault(); dropArea.classList.remove('dragover');});
+      });
+      dropArea.addEventListener('drop', e => {
+        const dt = new DataTransfer();
+        [...e.dataTransfer.files].forEach(f => dt.items.add(f));
+        fileInput.files = dt.files;
+        updateFilesList();
+      });
+      fileInput.addEventListener('change', updateFilesList);
+    }
   });
 
+  function updateFilesList(){
+    if(!filesList) return;
+    filesList.innerHTML = Array.from(fileInput.files).map(f => `<span>${f.name}</span>`).join('<br>');
+  }
+
   function showMessage(text, type) {
-    messagesBox.innerHTML = '';
     if (!text) return;
     const div = document.createElement('div');
-    div.className = `mb-4 px-4 py-2 rounded-md shadow ${type}`;
+    div.className = `toast px-4 py-2 rounded-md shadow ${type}`;
     div.textContent = text;
-    messagesBox.appendChild(div);
+    toastContainer.appendChild(div);
+    setTimeout(() => div.remove(), 3500);
   }
 
   if (form) {
@@ -259,7 +290,7 @@
           try { data = JSON.parse(xhr.responseText); } catch (err) {}
           if (data.success) { showMessage(data.success, 'success'); }
           if (data.error) { showMessage(data.error, 'error'); }
-          if (data.success && !data.error) { form.reset(); fetchReports(); }
+          if (data.success && !data.error) { form.reset(); updateFilesList(); fetchReports(); }
         } else {
           let msg = 'حدث خطأ أثناء الرفع';
           try { msg = JSON.parse(xhr.responseText).error || msg; } catch (err) {}
