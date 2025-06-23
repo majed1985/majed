@@ -36,6 +36,7 @@ from .models import (
 from .forms import (
     EmployeeEvaluationForm,
     RecruitmentReportForm,
+    RecruitmentReportEditForm,
 )
 
 
@@ -379,6 +380,20 @@ def export_report_excel(request, pk):
     response["Content-Disposition"] = f"attachment; filename={report.filename}"
     df.to_excel(response, index=False)
     return response
+
+
+def edit_report(request, pk):
+    """تعديل بيانات كشف استقدام."""
+    report = RecruitmentReport.objects.get(pk=pk)
+    if request.method == "POST":
+        form = RecruitmentReportEditForm(request.POST, instance=report)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "تم تحديث الكشف")
+            return redirect("core:upload_employees")
+    else:
+        form = RecruitmentReportEditForm(instance=report)
+    return render(request, "core/edit_report.html", {"form": form, "report": report})
 
 
 # ---------------------------------------------------------------------------

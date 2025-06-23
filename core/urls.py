@@ -63,6 +63,7 @@ urlpatterns = [
     path("recruitment/upload/", views.upload_employees, name="upload_employees"),
     path("recruitment/report/<int:pk>/", views.report_detail, name="report_detail"),
     path("recruitment/report/<int:pk>/delete/", views.delete_report, name="delete_report"),
+    path("recruitment/report/<int:pk>/edit/", views.edit_report, name="edit_report"),
     path("recruitment/report/<int:pk>/export/", views.export_report_excel, name="export_report"),
     path("recruitment/reports/json/", views.reports_json, name="reports_json"),
     path("recruitment/<int:pk>/evaluate/", views.evaluate_employee, name="evaluate_employee"),
