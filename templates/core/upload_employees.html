@@ -38,7 +38,7 @@
         <label class="block mb-1 text-sm text-gray-600">
           <i class="fa-solid fa-calendar-days"></i> {{ form.report_date.label }}
         </label>
-        <input type="date" name="report_date" class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-500" required>
+        <input type="date" name="report_date" placeholder="dd/mm/yyyy" class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-500" required>
         {{ form.report_date.errors }}
       </div>
       <!-- نوع الكشف -->
@@ -50,10 +50,11 @@
         {{ form.is_haramain.errors }}
       </div>
       <!-- زر رفع الكشف -->
-      <button type="submit"
+      <button type="submit" id="uploadBtn"
         class="w-full py-3 mt-2 bg-green-600 hover:bg-green-700 transition-transform hover:scale-105 text-white font-semibold rounded-xl shadow flex items-center justify-center gap-2 text-lg">
         <i class="fa-solid fa-upload"></i>
         رفع الكشف
+        <span id="uploadSpinner" class="hidden"><i class="fa-solid fa-spinner fa-spin"></i></span>
       </button>
       <div id="uploadProgressContainer" class="hidden mt-4">
         <div class="w-full bg-gray-200 rounded">
@@ -99,7 +100,7 @@
       </thead>
       <tbody id="reportsTableBody">
         {% for rep in reports_list %}
-        <tr class="odd:bg-gray-50">
+        <tr class="odd:bg-gray-50" data-filename="{{ rep.filename }}">
           <td class="px-3 py-2 flex items-center gap-2 truncate max-w-xs" title="{{ rep.filename }}">
             <i class="fa-solid {{ rep.filename|file_icon }}"></i>
             {{ rep.filename|truncate_middle:40 }}
@@ -114,18 +115,18 @@
             {% endif %}
           </td>
           <td class="px-3 py-2 space-x-1 space-x-reverse">
-            <a href="{% url 'core:export_report' rep.id %}" class="action-btn text-green-600 hover:text-green-800" title="تحميل">
+            <a href="{% url 'core:export_report' rep.id %}" class="action-btn text-green-600 hover:text-green-800 tooltip" data-tooltip="تحميل">
               <i class="fa-solid fa-download"></i>
             </a>
-            <a href="{% url 'core:report_detail' rep.id %}" target="_blank" class="action-btn text-blue-600 hover:text-blue-800" title="معاينة">
+            <a href="{% url 'core:report_detail' rep.id %}" target="_blank" class="action-btn text-blue-600 hover:text-blue-800 tooltip" data-tooltip="معاينة">
               <i class="fa-solid fa-eye"></i>
             </a>
-            <a href="{% url 'core:edit_report' rep.id %}" class="action-btn text-yellow-600 hover:text-yellow-800" title="تعديل">
+            <a href="{% url 'core:edit_report' rep.id %}" class="action-btn text-yellow-600 hover:text-yellow-800 tooltip" data-tooltip="تعديل">
               <i class="fa-solid fa-edit"></i>
             </a>
             <form method="post" action="{% url 'core:delete_report' rep.id %}" class="inline">
               {% csrf_token %}
-              <button type="submit" class="action-btn text-red-600 hover:text-red-800" title="حذف" onclick="return confirm('هل أنت متأكد من الحذف؟')">
+              <button type="submit" class="action-btn text-red-600 hover:text-red-800 tooltip" data-tooltip="حذف" onclick="return confirm('هل أنت متأكد من الحذف؟')">
                 <i class="fa-solid fa-trash"></i>
               </button>
             </form>
@@ -160,10 +161,13 @@
   const dropArea         = document.getElementById('dropArea');
   const fileInput        = document.getElementById('id_file');
   const filesList        = document.getElementById('filesList');
+  const uploadBtn        = document.getElementById('uploadBtn');
+  const uploadSpinner    = document.getElementById('uploadSpinner');
   const tableBody        = document.getElementById('reportsTableBody');
   const tableInfo        = document.getElementById('tableInfo');
   const csrfToken        = form.querySelector('[name=csrfmiddlewaretoken]').value;
   const loader           = document.getElementById('loader');
+  let uploadedFiles      = [];
 
   function getIcon(filename){
     const ext = filename.split('.').pop().toLowerCase();
@@ -198,18 +202,19 @@
         data.forEach(rep => {
           const tr = document.createElement('tr');
           tr.className = 'odd:bg-gray-50';
+          tr.dataset.filename = rep.filename;
           tr.innerHTML = `
             <td class="px-3 py-2 flex items-center gap-2 truncate max-w-xs" title="${rep.filename}"><i class="fa-solid ${getIcon(rep.filename)}"></i> ${rep.filename.length>40?rep.filename.slice(0,18)+'...'+rep.filename.slice(-18):rep.filename}</td>
             <td class="px-3 py-2">${rep.uploaded_at}</td>
             <td class="px-3 py-2">${rep.file_size_formatted}</td>
             <td class="px-3 py-2 text-lg">${rep.is_haramain ? `<i class='fa-solid fa-circle-check icon-haramain' title='حرمين'></i>` : `<i class='fa-solid fa-circle-minus icon-not-haramain' title='غير حرمين'></i>`}</td>
             <td class="px-3 py-2 space-x-1 space-x-reverse">
-              <a href="/recruitment/report/${rep.id}/export/" class="action-btn text-green-600 hover:text-green-800" title="تحميل"><i class="fa-solid fa-download"></i></a>
-              <a href="/recruitment/report/${rep.id}/" target="_blank" class="action-btn text-blue-600 hover:text-blue-800" title="معاينة"><i class="fa-solid fa-eye"></i></a>
-              <a href="/recruitment/report/${rep.id}/edit/" class="action-btn text-yellow-600 hover:text-yellow-800" title="تعديل"><i class="fa-solid fa-edit"></i></a>
+              <a href="/recruitment/report/${rep.id}/export/" class="action-btn text-green-600 hover:text-green-800 tooltip" data-tooltip="تحميل"><i class="fa-solid fa-download"></i></a>
+              <a href="/recruitment/report/${rep.id}/" target="_blank" class="action-btn text-blue-600 hover:text-blue-800 tooltip" data-tooltip="معاينة"><i class="fa-solid fa-eye"></i></a>
+              <a href="/recruitment/report/${rep.id}/edit/" class="action-btn text-yellow-600 hover:text-yellow-800 tooltip" data-tooltip="تعديل"><i class="fa-solid fa-edit"></i></a>
               <form method="post" action="/recruitment/report/${rep.id}/delete/" class="inline">
                 <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
-                <button type="submit" class="action-btn text-red-600 hover:text-red-800" title="حذف" onclick="return confirm('هل أنت متأكد من الحذف؟')"><i class="fa-solid fa-trash"></i></button>
+                <button type="submit" class="action-btn text-red-600 hover:text-red-800 tooltip" data-tooltip="حذف" onclick="return confirm('هل أنت متأكد من الحذف؟')"><i class="fa-solid fa-trash"></i></button>
               </form>`;
           tableBody.appendChild(tr);
         });
@@ -231,6 +236,7 @@
         table.on('draw', function(){
           updateTableInfo(table);
         });
+        highlightNewRows();
       })
       .finally(() => loader.classList.add('hidden'));
   }
@@ -247,6 +253,17 @@
     if(!tableInfo) return;
     const info = table.page.info();
     tableInfo.textContent = `إجمالي الملفات: ${info.recordsTotal} - بعد التصفية: ${info.recordsDisplay}`;
+  }
+
+  function highlightNewRows(){
+    if(!uploadedFiles.length) return;
+    document.querySelectorAll('#reportsTableBody tr').forEach(tr => {
+      if(uploadedFiles.includes(tr.dataset.filename)){
+        tr.classList.add('new-row');
+        setTimeout(() => tr.classList.remove('new-row'), 2000);
+      }
+    });
+    uploadedFiles = [];
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -281,6 +298,7 @@
 
   function showMessage(text, type) {
     if (!text) return;
+    messagesBox.innerHTML = `<div class="mb-2 px-4 py-2 rounded ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${text}</div>`;
     const div = document.createElement('div');
     div.className = `toast px-4 py-2 rounded-md shadow ${type}`;
     div.textContent = text;
@@ -291,6 +309,9 @@
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      uploadedFiles = Array.from(fileInput.files).map(f => f.name);
+      uploadBtn.disabled = true;
+      uploadSpinner.classList.remove('hidden');
       const xhr = new XMLHttpRequest();
       const formData = new FormData(form);
       xhr.open('POST', form.action);
@@ -307,6 +328,8 @@
         progressBox.classList.add('hidden');
         progressBar.style.width = '0%';
         progressText.textContent = '0%';
+        uploadBtn.disabled = false;
+        uploadSpinner.classList.add('hidden');
         if (xhr.status === 200) {
           let data = {};
           try { data = JSON.parse(xhr.responseText); } catch (err) {}
@@ -323,6 +346,8 @@
         progressBox.classList.add('hidden');
         progressBar.style.width = '0%';
         progressText.textContent = '0%';
+        uploadBtn.disabled = false;
+        uploadSpinner.classList.add('hidden');
         showMessage('حدث خطأ أثناء الرفع', 'error');
       };
       xhr.send(formData);
