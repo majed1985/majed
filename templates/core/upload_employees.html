@@ -1,21 +1,16 @@
 {% extends 'base.html' %}
 {% load recruitment_extras %}
 {% load static %}
+
 {% block title %}أرشفة كشوفات الاستقدام{% endblock %}
 
 {% block content %}
 
 <h1 class="text-3xl font-bold mb-6 text-center text-[#119383]">رفع وأرشفة كشوف الاستقدام</h1>
-<div class="flex justify-center -mt-4">
-  <img src="{% static 'images/recruitment_portal.svg' %}" alt="شعار الاستقدام" class="h-16" />
-</div>
 
 <!-- نموذج رفع كشف جديد -->
 <div class="flex items-center justify-center my-6">
   <div class="w-11/12 md:w-4/5 max-w-2xl bg-white rounded-xl border border-green-200 shadow-lg p-6 animate-fade-in text-right">
-    <h2 class="text-xl font-bold mb-4 text-green-700 flex items-center gap-2">
-      <i class="fa-solid fa-upload"></i> رفع كشف استقدام جديد
-    </h2>
     <div id="uploadMessages"></div>
     <div id="toastContainer"></div>
     <form id="uploadForm" method="post" enctype="multipart/form-data" class="space-y-5">
@@ -41,10 +36,10 @@
         <input type="date" name="report_date" placeholder="dd/mm/yyyy" class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:border-green-500" required>
         {{ form.report_date.errors }}
       </div>
-      <!-- نوع الكشف -->
+      <!-- القطاع -->
       <div>
         <label class="block mb-1 text-sm text-gray-600">
-          <i class="fa-solid fa-layer-group"></i> {{ form.is_haramain.label }}
+          <i class="fa-solid fa-layer-group"></i> القطاع
         </label>
         {{ form.is_haramain }}
         {{ form.is_haramain.errors }}
@@ -70,24 +65,53 @@
 </div>
 
 <!-- عرض الكشوفات المؤرشفة -->
-<div class="mt-12 max-w-4xl mx-auto">
-  <h2 class="text-xl font-bold mb-4 text-green-700 flex items-center gap-2">
+<div class="mt-12">
+  <h2 class="text-xl font-bold mb-4 text-green-700 flex items-center gap-2 w-11/12 md:w-4/5 max-w-2xl mx-auto">
     <i class="fa-solid fa-file-archive"></i> الكشوف المرفوعة
   </h2>
-  <div class="flex flex-wrap items-center gap-3 mb-4 text-sm text-gray-700">
-    <input id="searchInput" type="text" class="border rounded p-2 w-56 text-sm text-gray-700" placeholder="بحث باسم الملف أو التاريخ...">
-    <select id="typeFilter" class="border rounded p-2 text-sm text-gray-700">
-      <option value="">كل الأنواع</option>
-      <option value="true">حرمين</option>
-      <option value="false">غير حرمين</option>
-    </select>
-    <input id="startDate" type="date" class="border rounded p-2 text-sm text-gray-700">
-    <input id="endDate" type="date" class="border rounded p-2 text-sm text-gray-700">
+
+  <!-- كارد الفلاتر السفلي بنفس الكارد العلوي -->
+  <div class="flex items-center justify-center">
+    <div class="w-11/12 md:w-4/5 max-w-2xl bg-white rounded-xl border border-green-200 shadow-lg p-6 animate-fade-in">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label class="text-gray-600 text-sm font-semibold block mb-1">من تاريخ</label>
+          <input type="date" id="startDate"
+            class="w-full py-2 px-4 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 outline-none" />
+        </div>
+        <div>
+          <label class="text-gray-600 text-sm font-semibold block mb-1">إلى تاريخ</label>
+          <input type="date" id="endDate"
+            class="w-full py-2 px-4 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 outline-none" />
+        </div>
+        <div>
+          <label class="text-gray-600 text-sm font-semibold block mb-1">القطاع</label>
+          <select id="typeFilter"
+            class="w-full py-2 px-4 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 outline-none">
+            <option value="">كل القطاعات</option>
+            <option value="true">حرمين</option>
+            <option value="false">غير حرمين</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-gray-600 text-sm font-semibold block mb-1">بحث</label>
+          <div class="relative">
+            <input id="searchInput" type="text" placeholder="اسم الملف أو التاريخ..."
+              class="w-full py-2 px-4 pl-10 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 outline-none" />
+            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <i class="fa-solid fa-search"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- الجدول -->
   <div id="loader" class="hidden text-center my-2">
     <i class="fa-solid fa-spinner fa-spin fa-lg text-green-600"></i>
   </div>
-  <div class="overflow-x-auto bg-white rounded shadow">
+  <div class="overflow-x-auto bg-white rounded shadow w-11/12 md:w-4/5 max-w-2xl mx-auto mt-4">
     <table id="reportsTable" class="min-w-full text-sm text-center text-gray-700">
       <thead class="bg-gray-50">
         <tr>
@@ -100,259 +124,21 @@
       </thead>
       <tbody id="reportsTableBody">
         {% for rep in reports_list %}
-        <tr class="odd:bg-gray-50" data-filename="{{ rep.filename }}">
-          <td class="px-3 py-2 flex items-center gap-2 truncate max-w-xs" title="{{ rep.filename }}">
-            <i class="fa-solid {{ rep.filename|file_icon }}"></i>
-            {{ rep.filename|truncate_middle:40 }}
-          </td>
-          <td class="px-3 py-2">{{ rep.uploaded_at|date:"Y-m-d H:i" }}</td>
-          <td class="px-3 py-2">{{ rep.file_size|filesizeformat }}</td>
-          <td class="px-3 py-2 text-lg">
-            {% if rep.is_haramain %}
-              <i class="fa-solid fa-circle-check icon-haramain" title="حرمين"></i>
-            {% else %}
-              <i class="fa-solid fa-circle-minus icon-not-haramain" title="غير حرمين"></i>
-            {% endif %}
-          </td>
-          <td class="px-3 py-2 space-x-1 space-x-reverse">
-            <a href="{% url 'core:export_report' rep.id %}" class="action-btn text-green-600 hover:text-green-800 tooltip" data-tooltip="تحميل">
-              <i class="fa-solid fa-download"></i>
-            </a>
-            <a href="{% url 'core:report_detail' rep.id %}" target="_blank" class="action-btn text-blue-600 hover:text-blue-800 tooltip" data-tooltip="معاينة">
-              <i class="fa-solid fa-eye"></i>
-            </a>
-            <a href="{% url 'core:edit_report' rep.id %}" class="action-btn text-yellow-600 hover:text-yellow-800 tooltip" data-tooltip="تعديل">
-              <i class="fa-solid fa-edit"></i>
-            </a>
-            <form method="post" action="{% url 'core:delete_report' rep.id %}" class="inline">
-              {% csrf_token %}
-              <button type="submit" class="action-btn text-red-600 hover:text-red-800 tooltip" data-tooltip="حذف" onclick="return confirm('هل أنت متأكد من الحذف؟')">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </form>
-          </td>
-        </tr>
+          <tr class="odd:bg-gray-50" data-filename="{{ rep.filename }}">
+            <td class="px-3 py-2 truncate max-w-xs">{{ rep.filename }}</td>
+            <td class="px-3 py-2">{{ rep.uploaded_at|date:"Y-m-d H:i" }}</td>
+            <td class="px-3 py-2">{{ rep.file_size|filesizeformat }}</td>
+            <td class="px-3 py-2">{{ rep.is_haramain|yesno:"حرمين,غير حرمين" }}</td>
+            <td class="px-3 py-2">أزرار العمليات</td>
+          </tr>
         {% empty %}
-        <tr>
-          <td colspan="5" class="p-4 text-gray-500 text-center">
-            <i class="fa-solid fa-folder-open text-2xl text-gray-400"></i>
-            <span class="block mt-1">لا توجد نتائج – جرب فلترًا مختلفًا!</span>
-          </td>
-        </tr>
+          <tr>
+            <td colspan="5">لا توجد نتائج – جرب فلترًا مختلفًا!</td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
-    <div id="tableInfo" class="text-sm text-gray-700 py-2 px-3"></div>
   </div>
 </div>
-
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
-<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
-
-<script>
-  // كود رفع الملف مع البار المتحرك
-  const form             = document.getElementById('uploadForm');
-  const progressBox      = document.getElementById('uploadProgressContainer');
-  const progressBar      = document.getElementById('uploadProgressBar');
-  const progressText     = document.getElementById('uploadProgressText');
-  const toastContainer   = document.getElementById('toastContainer');
-  const messagesBox      = document.getElementById('uploadMessages');
-  const dropArea         = document.getElementById('dropArea');
-  const fileInput        = document.getElementById('id_file');
-  const filesList        = document.getElementById('filesList');
-  const uploadBtn        = document.getElementById('uploadBtn');
-  const uploadSpinner    = document.getElementById('uploadSpinner');
-  const tableBody        = document.getElementById('reportsTableBody');
-  const tableInfo        = document.getElementById('tableInfo');
-  const csrfToken        = form.querySelector('[name=csrfmiddlewaretoken]').value;
-  const loader           = document.getElementById('loader');
-  let uploadedFiles      = [];
-
-  function getIcon(filename){
-    const ext = filename.split('.').pop().toLowerCase();
-    if(['xls','xlsx'].includes(ext)) return 'fa-file-excel';
-    if(ext === 'pdf') return 'fa-file-pdf';
-    return 'fa-file';
-  }
-
-  function fetchReports(){
-    loader.classList.remove('hidden');
-    const q = document.getElementById('searchInput').value;
-    const type = document.getElementById('typeFilter').value;
-    const start = document.getElementById('startDate').value;
-    const end = document.getElementById('endDate').value;
-    const params = new URLSearchParams();
-    if(q) params.append('q', q);
-    if(type) params.append('type', type);
-    if(start) params.append('start', start);
-    if(end) params.append('end', end);
-
-    fetch('{% url "core:reports_json" %}?'+params.toString())
-      .then(r => r.json())
-      .then(data => {
-        tableBody.innerHTML = '';
-        if(!data.length){
-          tableBody.innerHTML = `<tr><td colspan="5" class="p-4 text-gray-500">
-            <i class='fa-solid fa-folder-open text-2xl text-gray-400'></i>
-            <span class='block mt-1'>لا توجد نتائج – جرب فلترًا مختلفًا!</span>
-          </td></tr>`;
-          return;
-        }
-        data.forEach(rep => {
-          const tr = document.createElement('tr');
-          tr.className = 'odd:bg-gray-50';
-          tr.dataset.filename = rep.filename;
-          tr.innerHTML = `
-            <td class="px-3 py-2 flex items-center gap-2 truncate max-w-xs" title="${rep.filename}"><i class="fa-solid ${getIcon(rep.filename)}"></i> ${rep.filename.length>40?rep.filename.slice(0,18)+'...'+rep.filename.slice(-18):rep.filename}</td>
-            <td class="px-3 py-2">${rep.uploaded_at}</td>
-            <td class="px-3 py-2">${rep.file_size_formatted}</td>
-            <td class="px-3 py-2 text-lg">${rep.is_haramain ? `<i class='fa-solid fa-circle-check icon-haramain' title='حرمين'></i>` : `<i class='fa-solid fa-circle-minus icon-not-haramain' title='غير حرمين'></i>`}</td>
-            <td class="px-3 py-2 space-x-1 space-x-reverse">
-              <a href="/recruitment/report/${rep.id}/export/" class="action-btn text-green-600 hover:text-green-800 tooltip" data-tooltip="تحميل"><i class="fa-solid fa-download"></i></a>
-              <a href="/recruitment/report/${rep.id}/" target="_blank" class="action-btn text-blue-600 hover:text-blue-800 tooltip" data-tooltip="معاينة"><i class="fa-solid fa-eye"></i></a>
-              <a href="/recruitment/report/${rep.id}/edit/" class="action-btn text-yellow-600 hover:text-yellow-800 tooltip" data-tooltip="تعديل"><i class="fa-solid fa-edit"></i></a>
-              <form method="post" action="/recruitment/report/${rep.id}/delete/" class="inline">
-                <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
-                <button type="submit" class="action-btn text-red-600 hover:text-red-800 tooltip" data-tooltip="حذف" onclick="return confirm('هل أنت متأكد من الحذف؟')"><i class="fa-solid fa-trash"></i></button>
-              </form>`;
-          tableBody.appendChild(tr);
-        });
-        if ( $.fn.DataTable.isDataTable('#reportsTable') ) {
-          $('#reportsTable').DataTable().destroy();
-        }
-        const table = $('#reportsTable').DataTable({
-          order: [[1, 'desc']],
-          pageLength: 10,
-          searching: false,
-          ordering: true,
-          info: true,
-          language: {
-            info: 'إجمالي _TOTAL_ ملف (عرض _START_ إلى _END_)',
-            infoEmpty: 'لا توجد ملفات'
-          }
-        });
-        updateTableInfo(table);
-        table.on('draw', function(){
-          updateTableInfo(table);
-        });
-        highlightNewRows();
-      })
-      .finally(() => loader.classList.add('hidden'));
-  }
-
-  function debounce(fn, delay = 300){
-    let timeout;
-    return function(){
-      clearTimeout(timeout);
-      timeout = setTimeout(fn, delay);
-    };
-  }
-
-  function updateTableInfo(table){
-    if(!tableInfo) return;
-    const info = table.page.info();
-    tableInfo.textContent = `إجمالي الملفات: ${info.recordsTotal} - بعد التصفية: ${info.recordsDisplay}`;
-  }
-
-  function highlightNewRows(){
-    if(!uploadedFiles.length) return;
-    document.querySelectorAll('#reportsTableBody tr').forEach(tr => {
-      if(uploadedFiles.includes(tr.dataset.filename)){
-        tr.classList.add('new-row');
-        setTimeout(() => tr.classList.remove('new-row'), 2000);
-      }
-    });
-    uploadedFiles = [];
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    fetchReports();
-    document.getElementById('searchInput').addEventListener('input', debounce(fetchReports));
-    document.getElementById('typeFilter').addEventListener('change', fetchReports);
-    document.getElementById('startDate').addEventListener('change', fetchReports);
-    document.getElementById('endDate').addEventListener('change', fetchReports);
-
-    if(dropArea && fileInput){
-      dropArea.addEventListener('click', () => fileInput.click());
-      ['dragenter','dragover'].forEach(evt => {
-        dropArea.addEventListener(evt, e => {e.preventDefault(); dropArea.classList.add('dragover');});
-      });
-      ['dragleave','drop'].forEach(evt => {
-        dropArea.addEventListener(evt, e => {e.preventDefault(); dropArea.classList.remove('dragover');});
-      });
-      dropArea.addEventListener('drop', e => {
-        const dt = new DataTransfer();
-        [...e.dataTransfer.files].forEach(f => dt.items.add(f));
-        fileInput.files = dt.files;
-        updateFilesList();
-      });
-      fileInput.addEventListener('change', updateFilesList);
-    }
-  });
-
-  function updateFilesList(){
-    if(!filesList) return;
-    filesList.innerHTML = Array.from(fileInput.files).map(f => `<span>${f.name}</span>`).join('<br>');
-  }
-
-  function showMessage(text, type) {
-    if (!text) return;
-    messagesBox.innerHTML = `<div class="mb-2 px-4 py-2 rounded ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">${text}</div>`;
-    const div = document.createElement('div');
-    div.className = `toast px-4 py-2 rounded-md shadow ${type}`;
-    div.textContent = text;
-    toastContainer.appendChild(div);
-    setTimeout(() => div.remove(), 3500);
-  }
-
-  if (form) {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      uploadedFiles = Array.from(fileInput.files).map(f => f.name);
-      uploadBtn.disabled = true;
-      uploadSpinner.classList.remove('hidden');
-      const xhr = new XMLHttpRequest();
-      const formData = new FormData(form);
-      xhr.open('POST', form.action);
-      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-      xhr.upload.addEventListener('progress', function (evt) {
-        if (evt.lengthComputable) {
-          const percent = Math.round((evt.loaded / evt.total) * 100);
-          progressBox.classList.remove('hidden');
-          progressBar.style.width = percent + '%';
-          progressText.textContent = percent + '%';
-        }
-      });
-      xhr.onload = function () {
-        progressBox.classList.add('hidden');
-        progressBar.style.width = '0%';
-        progressText.textContent = '0%';
-        uploadBtn.disabled = false;
-        uploadSpinner.classList.add('hidden');
-        if (xhr.status === 200) {
-          let data = {};
-          try { data = JSON.parse(xhr.responseText); } catch (err) {}
-          if (data.success) { showMessage(data.success, 'success'); }
-          if (data.error) { showMessage(data.error, 'error'); }
-          if (data.success && !data.error) { form.reset(); updateFilesList(); fetchReports(); }
-        } else {
-          let msg = 'حدث خطأ أثناء الرفع';
-          try { msg = JSON.parse(xhr.responseText).error || msg; } catch (err) {}
-          showMessage(msg, 'error');
-        }
-      };
-      xhr.onerror = function () {
-        progressBox.classList.add('hidden');
-        progressBar.style.width = '0%';
-        progressText.textContent = '0%';
-        uploadBtn.disabled = false;
-        uploadSpinner.classList.add('hidden');
-        showMessage('حدث خطأ أثناء الرفع', 'error');
-      };
-      xhr.send(formData);
-    });
-  }
-</script>
 
 {% endblock %}
