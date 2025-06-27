@@ -1,5 +1,7 @@
 from django.test import TestCase
 from django.db import IntegrityError
+from django.utils import timezone
+import datetime
 
 from .models import (
     Learner,
@@ -83,4 +85,45 @@ class LearnerModelTest(TestCase):
         learner = self._create_learner()
         self.assertEqual(learner.nationality, self.nationality)
         self.assertEqual(learner.sector, self.sector)
+
+
+class RecruitmentReportModelTest(TestCase):
+    """اختبارات نموذج كشف الاستقدام."""
+
+    def test_unique_together_constraint(self):
+        """يجب منع تكرار الملف لنفس التاريخ ونوع الكشف."""
+        from .models import RecruitmentReport
+
+        dt = datetime.date(2024, 1, 1)
+        RecruitmentReport.objects.create(
+            filename="rep.xlsx",
+            report_date=dt,
+            file_size=1,
+            is_haramain=False,
+            columns=["col"],
+            rows=[{"col": "x"}],
+        )
+        with self.assertRaises(IntegrityError):
+            RecruitmentReport.objects.create(
+                filename="rep.xlsx",
+                report_date=dt,
+                file_size=2,
+                is_haramain=False,
+                columns=["col"],
+                rows=[{"col": "y"}],
+            )
+
+    def test_str_representation(self):
+        from .models import RecruitmentReport
+
+        dt = datetime.date(2024, 1, 2)
+        rep = RecruitmentReport.objects.create(
+            filename="file.xlsx",
+            report_date=dt,
+            file_size=1,
+            is_haramain=True,
+            columns=["c"],
+            rows=[{"c": 1}],
+        )
+        self.assertEqual(str(rep), f"file.xlsx - {dt}")
 

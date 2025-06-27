@@ -21,6 +21,10 @@ import datetime
 from django.views.decorators.http import require_POST
 import os
 import calendar
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 from .models import (
     Learner,
@@ -54,8 +58,8 @@ def home(request):
 # ---------------------------------------------------------------------------
 def recruitment_dashboard(request):
     """الواجهة الرئيسية لخطوات تقييم موظفي الاستقدام."""
-    print("Rendering template: core/recruitment_dashboard.html")
-    print("Template absolute path:", os.path.abspath(__file__))
+    logger.debug("Rendering recruitment dashboard")
+    logger.debug("Template absolute path: %s", os.path.abspath(__file__))
     return render(request, "core/recruitment_dashboard.html")
 
 
@@ -279,7 +283,8 @@ def upload_employees(request):
 
                 try:
                     df = pd.read_excel(excel)
-                except Exception as e:  # pragma: no cover - just logging
+                except (ValueError, OSError) as e:  # pragma: no cover - just logging
+                    logger.error("Failed reading %s: %s", excel.name, e)
                     errors.append(f"{excel.name}: {e}")
                     continue
 
