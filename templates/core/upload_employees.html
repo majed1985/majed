@@ -8,9 +8,9 @@
 
 <h1 class="text-3xl font-bold mb-6 text-center text-[#119383]">رفع وأرشفة كشوف الاستقدام</h1>
 
-<!-- نموذج رفع كشف جديد -->
-<div class="flex items-center justify-center my-6">
-  <div class="w-11/12 md:w-4/5 max-w-2xl bg-white rounded-xl border border-green-200 shadow-lg p-6 animate-fade-in text-right">
+<div class="flex flex-col items-center gap-10 my-8">
+  <!-- الكارد العلوي (رفع كشف جديد) -->
+  <div class="w-full max-w-2xl bg-white rounded-xl border border-green-200 shadow-lg p-6 animate-fade-in text-right">
     <div id="uploadMessages"></div>
     <div id="toastContainer"></div>
     <form id="uploadForm" method="post" enctype="multipart/form-data" class="space-y-5">
@@ -62,82 +62,75 @@
       </p>
     </form>
   </div>
-</div>
 
-<!-- عرض الكشوفات المؤرشفة -->
-<div class="mt-12">
-  <h2 class="text-xl font-bold mb-4 text-green-700 flex items-center gap-2 w-11/12 md:w-4/5 max-w-2xl mx-auto">
-    <i class="fa-solid fa-file-archive"></i> الكشوف المرفوعة
-  </h2>
-
-  <!-- كارد الفلاتر السفلي بنفس الكارد العلوي -->
-  <div class="flex items-center justify-center">
-    <div class="w-11/12 md:w-4/5 max-w-2xl bg-white rounded-xl border border-green-200 shadow-lg p-6 animate-fade-in">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <label class="text-gray-600 text-sm font-semibold block mb-1">من تاريخ</label>
-          <input type="date" id="startDate"
-            class="w-full py-2 px-4 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 outline-none" />
-        </div>
-        <div>
-          <label class="text-gray-600 text-sm font-semibold block mb-1">إلى تاريخ</label>
-          <input type="date" id="endDate"
-            class="w-full py-2 px-4 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 outline-none" />
-        </div>
-        <div>
-          <label class="text-gray-600 text-sm font-semibold block mb-1">القطاع</label>
-          <select id="typeFilter"
-            class="w-full py-2 px-4 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 outline-none">
-            <option value="">كل القطاعات</option>
-            <option value="true">حرمين</option>
-            <option value="false">غير حرمين</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-gray-600 text-sm font-semibold block mb-1">بحث</label>
-          <div class="relative">
-            <input id="searchInput" type="text" placeholder="اسم الملف أو التاريخ..."
-              class="w-full py-2 px-4 pl-10 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 outline-none" />
-            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <i class="fa-solid fa-search"></i>
-            </span>
-          </div>
+  <!-- الكارد السفلي (الكشوف المؤرشفة) بنفس الكلاسات بالضبط -->
+  <div class="w-full max-w-2xl bg-white rounded-xl border border-green-200 shadow-lg p-6 animate-fade-in">
+    <div class="flex items-center justify-center gap-2 mb-6">
+      <i class="fa-solid fa-file-archive text-2xl text-green-700"></i>
+      <span class="text-2xl font-bold text-[#192e38]">الكشوف المرفوعة</span>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div>
+        <label class="text-gray-600 text-sm font-semibold block mb-1">من تاريخ</label>
+        <input type="date" id="startDate"
+          class="w-full py-2 px-4 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 outline-none" />
+      </div>
+      <div>
+        <label class="text-gray-600 text-sm font-semibold block mb-1">إلى تاريخ</label>
+        <input type="date" id="endDate"
+          class="w-full py-2 px-4 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 outline-none" />
+      </div>
+      <div>
+        <label class="text-gray-600 text-sm font-semibold block mb-1">القطاع</label>
+        <select id="typeFilter"
+          class="w-full py-2 px-4 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 outline-none">
+          <option value="">كل القطاعات</option>
+          <option value="true">حرمين</option>
+          <option value="false">غير حرمين</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-gray-600 text-sm font-semibold block mb-1">بحث</label>
+        <div class="relative">
+          <input id="searchInput" type="text" placeholder="اسم الملف أو التاريخ..."
+            class="w-full py-2 px-4 pl-10 bg-gray-50 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-400 focus:border-green-500 transition duration-200 outline-none" />
+          <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+            <i class="fa-solid fa-search"></i>
+          </span>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- الجدول -->
-  <div id="loader" class="hidden text-center my-2">
-    <i class="fa-solid fa-spinner fa-spin fa-lg text-green-600"></i>
-  </div>
-  <div class="overflow-x-auto bg-white rounded shadow w-11/12 md:w-4/5 max-w-2xl mx-auto mt-4">
-    <table id="reportsTable" class="min-w-full text-sm text-center text-gray-700">
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-3 py-2">اسم الملف</th>
-          <th class="px-3 py-2">تاريخ الرفع</th>
-          <th class="px-3 py-2">الحجم</th>
-          <th class="px-3 py-2">نوع الكشف</th>
-          <th class="px-3 py-2">العمليات</th>
-        </tr>
-      </thead>
-      <tbody id="reportsTableBody">
-        {% for rep in reports_list %}
-          <tr class="odd:bg-gray-50" data-filename="{{ rep.filename }}">
-            <td class="px-3 py-2 truncate max-w-xs">{{ rep.filename }}</td>
-            <td class="px-3 py-2">{{ rep.uploaded_at|date:"Y-m-d H:i" }}</td>
-            <td class="px-3 py-2">{{ rep.file_size|filesizeformat }}</td>
-            <td class="px-3 py-2">{{ rep.is_haramain|yesno:"حرمين,غير حرمين" }}</td>
-            <td class="px-3 py-2">أزرار العمليات</td>
-          </tr>
-        {% empty %}
+    <div id="loader" class="hidden text-center my-2">
+      <i class="fa-solid fa-spinner fa-spin fa-lg text-green-600"></i>
+    </div>
+    <div class="overflow-x-auto bg-white rounded shadow">
+      <table id="reportsTable" class="min-w-full text-sm text-center text-gray-700">
+        <thead class="bg-gray-50">
           <tr>
-            <td colspan="5">لا توجد نتائج – جرب فلترًا مختلفًا!</td>
+            <th class="px-3 py-2">اسم الملف</th>
+            <th class="px-3 py-2">تاريخ الرفع</th>
+            <th class="px-3 py-2">الحجم</th>
+            <th class="px-3 py-2">نوع الكشف</th>
+            <th class="px-3 py-2">العمليات</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+        </thead>
+        <tbody id="reportsTableBody">
+          {% for rep in reports_list %}
+            <tr class="odd:bg-gray-50" data-filename="{{ rep.filename }}">
+              <td class="px-3 py-2 truncate max-w-xs">{{ rep.filename }}</td>
+              <td class="px-3 py-2">{{ rep.uploaded_at|date:"Y-m-d H:i" }}</td>
+              <td class="px-3 py-2">{{ rep.file_size|filesizeformat }}</td>
+              <td class="px-3 py-2">{{ rep.is_haramain|yesno:"حرمين,غير حرمين" }}</td>
+              <td class="px-3 py-2">أزرار العمليات</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5">لا توجد نتائج – جرب فلترًا مختلفًا!</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
