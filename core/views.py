@@ -266,6 +266,8 @@ def upload_employees(request):
             saved = 0
             skipped = []
 
+            errors = []
+
             for excel in files:
                 if RecruitmentReport.objects.filter(
                     filename=excel.name,
@@ -275,7 +277,12 @@ def upload_employees(request):
                     skipped.append(excel.name)
                     continue
 
-                df = pd.read_excel(excel)
+                try:
+                    df = pd.read_excel(excel)
+                except Exception as e:  # pragma: no cover - just logging
+                    errors.append(f"{excel.name}: {e}")
+                    continue
+
                 columns = df.columns.tolist()
                 rows = df.fillna("").to_dict(orient="records")
 
@@ -296,6 +303,9 @@ def upload_employees(request):
                 success_msg = f"تم حفظ {saved} كشف بنجاح"
             if skipped:
                 error_msg = "تم تخطي الكشوف المكررة: " + ", ".join(skipped)
+            if errors:
+                msg = "أخطاء أثناء قراءة الملفات: " + "; ".join(errors)
+                error_msg = f"{error_msg}; {msg}" if error_msg else msg
 
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 return JsonResponse({"success": success_msg, "error": error_msg})
