@@ -27,3 +27,25 @@ Failing to run migrations can lead to errors such as
 
 Ensure `DJANGO_SECRET_KEY` is set to a unique value in production to avoid using
 the default key from `settings.py`.
+
+## Local Setup
+
+1. Install Python dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+2. Install and build Tailwind CSS assets (requires `npm`):
+
+```bash
+npm install
+npm run build:css &
+```
+
+3. Apply database migrations and start the development server:
+
+```bash
+python manage.py migrate
+python manage.py runserver
+```
