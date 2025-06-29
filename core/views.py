@@ -497,6 +497,11 @@ def input_evaluation_results(request):
     months = sorted(grouped.get(int(year), {}).keys(), reverse=True) if year and year.isdigit() else []
     days = sorted(grouped.get(int(year), {}).get(int(month), {}).keys(), reverse=True) if year and month and year.isdigit() and month.isdigit() else []
 
+    reports = []
+    if year and month and day and year.isdigit() and month.isdigit() and day.isdigit():
+        date_obj = datetime.date(int(year), int(month), int(day))
+        reports = RecruitmentReport.objects.filter(report_date=date_obj)
+
     context = {
         "years": years,
         "months": months,
@@ -505,6 +510,7 @@ def input_evaluation_results(request):
         "selected_month": month,
         "selected_day": day,
         "employees": selected,
+        "reports": reports,
     }
     return render(request, "core/input_results.html", context)
 
