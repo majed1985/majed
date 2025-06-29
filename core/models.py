@@ -132,7 +132,9 @@ class RecruitmentEmployee(models.Model):
 
     # ترتيب الحقول بحسب الكشف الورقي
     serial = models.PositiveIntegerField("التسلسل", null=True, blank=True)
-    employee_number = models.CharField("الرقم الوظيفي", max_length=50)
+    employee_number = models.CharField(
+        "الرقم الوظيفي", max_length=50, db_index=True
+    )
     name = models.CharField("الاسم عربي", max_length=100)
     name_en = models.CharField(
         "الاسم انجليزي", max_length=100, blank=True, null=True
