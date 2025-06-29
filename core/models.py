@@ -147,7 +147,9 @@ class RecruitmentEmployee(models.Model):
     )
 
     # تقييم ونتائج
-    evaluation = models.FloatField("Evaluation", null=True, blank=True)
+    evaluation = models.DecimalField(
+        "Evaluation", max_digits=5, decimal_places=2, null=True, blank=True
+    )
     result = models.CharField("Result", max_length=100, blank=True, null=True)
     result_expectations = models.CharField(
         "Result Expectations", max_length=100, blank=True, null=True
@@ -157,7 +159,9 @@ class RecruitmentEmployee(models.Model):
     start_date = models.DateField("تاريخ المباشرة", null=True, blank=True)
     is_haramain = models.BooleanField("حرمين", default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    final_score = models.FloatField("الدرجة النهائية", null=True, blank=True)
+    final_score = models.DecimalField(
+        "الدرجة النهائية", max_digits=5, decimal_places=2, null=True, blank=True
+    )
 
     class Meta:
         verbose_name = "موظف استقدام"

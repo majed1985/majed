@@ -22,6 +22,7 @@ from django.views.decorators.http import require_POST
 import os
 import calendar
 import logging
+from decimal import Decimal
 
 
 logger = logging.getLogger(__name__)
@@ -440,8 +441,8 @@ def set_final_score(request, pk):
     employee = RecruitmentEmployee.objects.get(pk=pk)
     score = request.POST.get("final_score")
     try:
-        employee.final_score = float(score)
-    except (TypeError, ValueError):
+        employee.final_score = Decimal(score)
+    except (TypeError, ValueError, ArithmeticError):
         pass
     else:
         employee.save()
@@ -477,9 +478,9 @@ def input_evaluation_results(request):
             score = request.POST.get(f"score_{emp.id}")
             if score:
                 try:
-                    emp.final_score = float(score)
+                    emp.final_score = Decimal(score)
                     emp.save()
-                except ValueError:
+                except (ValueError, ArithmeticError):
                     pass
         messages.success(request, "تم حفظ الدرجات")
         return redirect(f"{reverse('core:input_evaluation_results')}?year={year}&month={month}&day={day}")
