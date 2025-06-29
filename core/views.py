@@ -479,12 +479,19 @@ def input_evaluation_results(request):
             selected = []
         for emp in selected:
             score = request.POST.get(f"score_{emp.id}")
+            result_val = request.POST.get(f"result_{emp.id}")
+            changed = False
             if score:
                 try:
                     emp.final_score = Decimal(score)
-                    emp.save()
+                    changed = True
                 except (ValueError, ArithmeticError):
                     pass
+            if result_val is not None:
+                emp.result = result_val
+                changed = True
+            if changed:
+                emp.save()
         messages.success(request, "تم حفظ الدرجات")
         return redirect(f"{reverse('core:input_evaluation_results')}?year={year}&month={month}&day={day}")
     else:

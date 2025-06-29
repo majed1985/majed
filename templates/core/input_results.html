@@ -56,7 +56,7 @@
         <th class="px-2">الجنسية</th>
         <th class="px-2">المهنة</th>
         <th class="px-2">اسم الكفيل</th>
-        <th class="px-2">Evaluation</th>
+        <th class="px-2">تاريخ التقييم</th>
         <th class="px-2">الدرجة</th>
         <th class="px-2">رمز الدرجة</th>
         <th class="px-2">النتيجة</th>
@@ -74,12 +74,14 @@
         <td class="px-2">{{ emp.nationality }}</td>
         <td class="px-2">{{ emp.official_job }}</td>
         <td class="px-2">{{ emp.sponsor_name }}</td>
+        <td class="px-2">{{ emp.last_evaluation_date }}</td>
         <td class="px-2">
           <input type="number" step="0.01" name="score_{{ emp.id }}" value="{{ emp.final_score|default_if_none:'' }}" class="border px-2 w-20 text-sm">
         </td>
-        <td class="px-2">{{ emp.final_score }}</td>
         <td class="px-2">{{ emp.final_score|grade_symbol }}</td>
-        <td class="px-2">{{ emp.result }}</td>
+        <td class="px-2">
+          <input type="text" name="result_{{ emp.id }}" value="{{ emp.result|default_if_none:'' }}" class="border px-2 w-32 text-sm">
+        </td>
         <td class="px-2">{{ emp.result_expectations }}</td>
       </tr>
       {% endfor %}
