@@ -1,21 +1,22 @@
 {% extends 'base.html' %}
+{% load recruitment_extras %}
 {% block title %}إدخال نتائج التقييم{% endblock %}
 {% block content %}
 <h1 class="text-2xl font-bold mb-4">إدخال نتائج التقييم</h1>
 <form method="get" class="flex space-x-2 mb-4">
-  <select name="year" class="border px-2 py-1">
+  <select name="year" class="border px-2 py-1" onchange="this.form.submit()">
     <option value="">السنة...</option>
     {% for y in years %}
     <option value="{{ y }}" {% if y|stringformat:'s' == selected_year %}selected{% endif %}>{{ y }}</option>
     {% endfor %}
   </select>
-  <select name="month" class="border px-2 py-1">
+  <select name="month" class="border px-2 py-1" onchange="this.form.submit()">
     <option value="">الشهر...</option>
     {% for m in months %}
     <option value="{{ m }}" {% if m|stringformat:'s' == selected_month %}selected{% endif %}>{{ m }}</option>
     {% endfor %}
   </select>
-  <select name="day" class="border px-2 py-1">
+  <select name="day" class="border px-2 py-1" onchange="this.form.submit()">
     <option value="">اليوم...</option>
     {% for d in days %}
     <option value="{{ d }}" {% if d|stringformat:'s' == selected_day %}selected{% endif %}>{{ d }}</option>
@@ -23,6 +24,9 @@
   </select>
   <button type="submit" class="px-4 py-1 bg-blue-600 text-white rounded">عرض</button>
 </form>
+{% if not years %}
+<p class="mb-4 text-red-600">لا توجد بيانات متاحة. الرجاء رفع كشف الموظفين أولاً.</p>
+{% endif %}
 {% if reports %}
 <div class="mb-4">
   <span class="font-semibold">الملفات المتاحة:</span>
