@@ -451,12 +451,12 @@ def set_final_score(request, pk):
 # ---------------------------------------------------------------------------
 def input_evaluation_results(request):
     """إدخال الدرجات لعدد من الموظفين دفعة واحدة."""
-    employees = RecruitmentEmployee.objects.all().order_by("created_at")
+    reports_all = RecruitmentReport.objects.all()
 
-    grouped = {}
-    for emp in employees:
-        dt = timezone.localtime(emp.created_at).date()
-        grouped.setdefault(dt.year, {}).setdefault(dt.month, {}).setdefault(dt.day, []).append(emp)
+    report_dates = {}
+    for rep in reports_all:
+        dt = rep.report_date
+        report_dates.setdefault(dt.year, {}).setdefault(dt.month, set()).add(dt.day)
 
     year = request.GET.get("year")
     month = request.GET.get("month")
@@ -471,17 +471,27 @@ def input_evaluation_results(request):
             y = int(year)
             m = int(month)
             d = int(day)
-            selected = grouped.get(y, {}).get(m, {}).get(d, [])
+            date_obj = datetime.date(y, m, d)
+            selected = list(
+                RecruitmentEmployee.objects.filter(created_at__date=date_obj).order_by("created_at")
+            )
         except (TypeError, ValueError):
             selected = []
         for emp in selected:
             score = request.POST.get(f"score_{emp.id}")
+            result_val = request.POST.get(f"result_{emp.id}")
+            changed = False
             if score:
                 try:
                     emp.final_score = Decimal(score)
-                    emp.save()
+                    changed = True
                 except (ValueError, ArithmeticError):
                     pass
+            if result_val is not None:
+                emp.result = result_val
+                changed = True
+            if changed:
+                emp.save()
         messages.success(request, "تم حفظ الدرجات")
         return redirect(f"{reverse('core:input_evaluation_results')}?year={year}&month={month}&day={day}")
     else:
@@ -489,13 +499,24 @@ def input_evaluation_results(request):
             y = int(year)
             m = int(month)
             d = int(day)
-            selected = grouped.get(y, {}).get(m, {}).get(d, [])
+            date_obj = datetime.date(y, m, d)
+            selected = list(
+                RecruitmentEmployee.objects.filter(created_at__date=date_obj).order_by("created_at")
+            )
         except (TypeError, ValueError):
             selected = []
 
-    years = sorted(grouped.keys(), reverse=True)
-    months = sorted(grouped.get(int(year), {}).keys(), reverse=True) if year and year.isdigit() else []
-    days = sorted(grouped.get(int(year), {}).get(int(month), {}).keys(), reverse=True) if year and month and year.isdigit() and month.isdigit() else []
+    years = sorted(report_dates.keys(), reverse=True)
+    months = (
+        sorted(report_dates.get(int(year), {}).keys(), reverse=True)
+        if year and year.isdigit()
+        else []
+    )
+    days = (
+        sorted(report_dates.get(int(year), {}).get(int(month), []), reverse=True)
+        if year and month and year.isdigit() and month.isdigit()
+        else []
+    )
 
     reports = []
     if year and month and day and year.isdigit() and month.isdigit() and day.isdigit():
