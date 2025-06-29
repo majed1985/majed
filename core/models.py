@@ -172,6 +172,12 @@ class RecruitmentEmployee(models.Model):
     def __str__(self) -> str:
         return self.name
 
+    @property
+    def last_evaluation_date(self):
+        """Return date of the most recent evaluation if available."""
+        evaluation = self.evaluations.order_by("-evaluated_at").first()
+        return evaluation.evaluated_at.date() if evaluation else None
+
 
 class EmployeeEvaluation(models.Model):
     """تقييم موظف الاستقدام بعد المحاضرة التعريفية والتقييم العملي."""
