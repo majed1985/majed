@@ -3,6 +3,7 @@
 This project is a Django-based training management application. The database
 configuration uses PostgreSQL by default. Adjust the following environment
 variables to match your local setup:
+A `.env.example` file lists these variables; copy it to `.env` and adjust as needed.
 
 ```
 POSTGRES_DB
