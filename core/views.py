@@ -430,7 +430,7 @@ def input_evaluation_results(request):
 
         for emp in selected:
             raw_score  = request.POST.get(f"score_{emp.id}", "").strip()
-            raw_eval   = request.POST.get(f"evaluation_{emp.id}", "").strip()
+            raw_result = request.POST.get(f"result_{emp.id}", "").strip()
             raw_expect = request.POST.get(f"result_expectations_{emp.id}", "").strip()
             raw_date   = request.POST.get(f"date_{emp.id}", "").strip()
             changed = False
@@ -438,20 +438,20 @@ def input_evaluation_results(request):
             # Absent
             if raw_score.lower() == "absent":
                 emp.final_score = None
-                emp.evaluation = emp.result_expectations = "Absent"
+                emp.result = emp.result_expectations = "Absent"
                 changed = True
             elif raw_score:
                 try:
                     dec = Decimal(raw_score)
                     emp.final_score = dec
-                    emp.evaluation, emp.result_expectations = _grade_mapping(dec)
+                    emp.result, emp.result_expectations = _grade_mapping(dec)
                     changed = True
                 except Exception:
                     pass
 
             # يدوي
-            if raw_eval:
-                emp.evaluation = raw_eval; changed = True
+            if raw_result:
+                emp.result = raw_result; changed = True
             if raw_expect:
                 emp.result_expectations = raw_expect; changed = True
 
