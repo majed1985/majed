@@ -10,7 +10,7 @@
      @apply bg-white/70 backdrop-blur-lg border border-white/40 rounded-3xl shadow-xl;
   }
   .apple-btn{
-     @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full px-10 py-3
+     @apply bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full px-10 py-3
             shadow-lg transition disabled:opacity-40 disabled:cursor-not-allowed;
   }
 </style>
@@ -60,7 +60,7 @@
   <input type="hidden" name="day"   value="{{ selected_day }}">
 
   <div class="mx-auto w-full max-w-3xl apple-card p-6 overflow-x-auto">
-    <table id="emp-table" class="w-full text-sm text-left">
+    <table id="emp-table" class="w-full text-base text-left">
       <thead class="border-b font-medium">
         <tr class="whitespace-nowrap">
           <th class="px-2 py-1">#</th>
@@ -96,7 +96,7 @@
           </td>
           <td class="px-2">
             <input type="date" name="date_{{ emp.id }}"
-                   value="{{ emp.last_evaluation_date|date:'Y-m-d' }}"
+                   value="{{ emp.last_evaluation_date|default_if_none:emp.report.report_date|date:'Y-m-d' }}"
                    class="border rounded px-2 py-1"
                    oninput="enableSave();" />
           </td>
