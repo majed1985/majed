@@ -1,181 +1,155 @@
 {% extends "base.html" %}
-{% load static recruitment_extras %}
+{% load recruitment_extras %}
 
 {% block title %}إدخال نتائج التقييم{% endblock %}
 
+{% block extra_css %}
+<!-- لمسة “Apple” بسيطة -->
+<style>
+  .apple-card{
+     @apply bg-white/70 backdrop-blur-lg border border-white/40 rounded-3xl shadow-xl;
+  }
+  .apple-btn{
+     @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full px-10 py-3
+            shadow-lg transition disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+<h1 class="text-2xl font-semibold text-center mb-6">إدخال نتائج التقييم</h1>
 
-  {# ---------------- رأس الصفحة ---------------- #}
-  <h1 class="sr-only">إدخال نتائج التقييم</h1>
-
-  {# ---------------- شريط اختيار التاريخ ---------------- #}
-  <form method="get" class="flex flex-wrap gap-3 justify-center mb-10">
-    {% for name, data, selected in (
+{# ---------- شريط اختيار التاريخ ---------- #}
+<form method="get" class="flex flex-wrap justify-center gap-2 mb-6">
+  {% for name, items, selected in
         ('year', years, selected_year),
         ('month', months, selected_month),
-        ('day', days, selected_day)
-      ) %}
-      <select name="{{ name }}"
-              class="border border-gray-300 rounded-lg py-2 px-3 bg-white/70
-                     shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0071e3]"
-              onchange="this.form.submit()">
-        <option value="">{{ name|title }}</option>
-        {% for d in data %}
-          <option value="{{ d }}" {% if d|stringformat:'s' == selected %}selected{% endif %}>{{ d }}</option>
-        {% endfor %}
-      </select>
+        ('day', days, selected_day) %}
+    <select name="{{ name }}" class="border rounded-lg px-3 py-2 bg-white shadow-sm
+                                     focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onchange="this.form.submit()">
+      <option value="">{{ name|capfirst }} …</option>
+      {% for i in items %}
+        <option value="{{ i }}" {% if i|stringformat:'s' == selected %}selected{% endif %}>{{ i }}</option>
+      {% endfor %}
+    </select>
+  {% endfor %}
+  <button type="submit"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-6 py-2">
+    عرض
+  </button>
+</form>
+
+{# ---------- أداة البحث بالرقم الوظيفي ---------- #}
+<input id="emp-search" type="search" placeholder="بحث بالرقم الوظيفي…"
+       class="block mx-auto mb-4 w-56 border rounded-lg px-3 py-2 shadow-sm
+              focus:outline-none focus:ring-2 focus:ring-blue-500" />
+
+{# ---------- قائمة الملفات ---------- #}
+{% if reports %}
+  <div class="text-center mb-4">
+    <span class="font-medium">الملفات المتاحة:</span>
+    {% for rep in reports %}
+      <a href="{% url 'core:report_detail' rep.id %}" class="text-blue-600 underline mx-1">{{ rep.filename }}</a>
     {% endfor %}
-    <button type="submit"
-            class="rounded-lg bg-[#0071e3] text-white font-semibold px-6 py-2
-                   shadow hover:shadow-md transition focus:outline-none
-                   focus:ring-2 focus:ring-offset-2 focus:ring-[#0071e3]">
-      عرض
-    </button>
-  </form>
-
-  {# ---------------- بطاقة الجدول ---------------- #}
-  <div class="bg-white/80 backdrop-blur-xl shadow-xl rounded-2xl overflow-hidden">
-    {% if employees %}
-    <form method="post" class="relative">
-      {% csrf_token %}
-      <input type="hidden" name="year"  value="{{ selected_year }}">
-      <input type="hidden" name="month" value="{{ selected_month }}">
-      <input type="hidden" name="day"   value="{{ selected_day }}">
-
-      {# --------- شريط البحث وعدد السجلات --------- #}
-      <div class="flex items-center justify-between p-4 border-b border-gray-200">
-        <div class="text-sm text-gray-500">الموظفون <span class="font-medium">{{ employees|length }}</span></div>
-
-        <div class="relative">
-          <input id="searchBox" type="search" placeholder="بحث بالرقم الوظيفي…"
-                 class="border border-gray-300 rounded-lg pl-10 pr-3 py-2 w-48
-                        focus:outline-none focus:ring-2 focus:ring-[#0071e3] text-sm">
-          <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="currentColor"
-               viewBox="0 0 20 20"><path fill-rule="evenodd"
-                d="M12.9 14.32a8 8 0 111.414-1.414l4.387 4.387a1 1 0 01-1.414 1.414l-4.387-4.387zM14 8a6 6 0 11-12 0 6 6 0 0112 0z"
-                clip-rule="evenodd" /></svg>
-        </div>
-      </div>
-
-      {# --------- الجدول --------- #}
-      <div class="overflow-x-auto max-h-[60vh]">
-        <table class="min-w-full text-sm text-gray-700">
-          <thead class="sticky top-0 bg-white/90 backdrop-blur-xl">
-            <tr class="text-left uppercase tracking-wide text-xs text-gray-500">
-              <th class="px-4 py-3 w-14">#</th>
-              <th class="px-4 py-3 w-32">الرقم الوظيفي</th>
-              <th class="px-4 py-3">الاسم (ع)</th>
-              <th class="px-4 py-3 w-40">Evaluation (0-100)</th>
-              <th class="px-4 py-3 w-24">Result</th>
-              <th class="px-4 py-3 w-48">Result Expectations</th>
-              <th class="px-4 py-3 w-40">Assessment Date</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100" id="empTable">
-            {% for emp in employees %}
-            <tr class="hover:bg-gray-50 transition">
-              <td class="px-4 py-2 text-center text-gray-500">{{ forloop.counter }}</td>
-              <td class="px-4 py-2 font-mono">{{ emp.employee_number }}</td>
-              <td class="px-4 py-2 whitespace-nowrap">{{ emp.name }}</td>
-
-              {# Evaluation #}
-              <td class="px-4 py-2">
-                <input name="score_{{ emp.id }}" id="score-{{ emp.id }}"
-                       value="{{ emp.final_score|default_if_none:'' }}"
-                       class="w-full border-gray-300 rounded-lg py-1.5 px-2
-                              focus:outline-none focus:ring-1 focus:ring-[#0071e3]"
-                       oninput="calc('{{ emp.id }}')"
-                       autocomplete="off">
-              </td>
-
-              {# Result #}
-              <td class="px-4 py-2">
-                <input name="evaluation_{{ emp.id }}" id="eval-{{ emp.id }}"
-                       value="{{ emp.evaluation|default_if_none:'' }}"
-                       class="w-full border-0 bg-transparent focus:outline-none
-                              text-center font-semibold"
-                       readonly>
-              </td>
-
-              {# Expectations #}
-              <td class="px-4 py-2">
-                <input name="result_expectations_{{ emp.id }}" id="exp-{{ emp.id }}"
-                       value="{{ emp.result_expectations|default_if_none:'' }}"
-                       class="w-full border-0 bg-transparent focus:outline-none text-xs"
-                       readonly>
-              </td>
-
-              {# Date #}
-              <td class="px-4 py-2">
-                <input type="date" name="date_{{ emp.id }}"
-                       value="{{ emp.last_evaluation_date|date:'Y-m-d' }}"
-                       class="w-full border-gray-300 rounded-lg py-1.5 px-2
-                              focus:outline-none focus:ring-1 focus:ring-[#0071e3]">
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-
-      {# -------- زر الحفظ ثابت أسفل البطاقة -------- #}
-      <div class="p-4 border-t border-gray-200 flex justify-end bg-white/90 backdrop-blur-xl">
-        <button type="submit"
-                class="rounded-lg bg-[#0071e3] text-white font-semibold px-8 py-2
-                       shadow transition hover:shadow-lg
-                       focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0071e3]">
-          حفظ جميع الدرجات
-        </button>
-      </div>
-    </form>
-    {% else %}
-      <p class="p-8 text-center text-gray-500">لا توجد بيانات لهذا التاريخ.</p>
-    {% endif %}
   </div>
-</div>
+{% endif %}
 
-{# ----------------- سكربت JS (حساب الحرف +فلترة البحث+تنقل Tab) ---------------- #}
+{% if employees %}
+<form method="post" id="grades-form">
+  {% csrf_token %}
+  <input type="hidden" name="year"  value="{{ selected_year }}">
+  <input type="hidden" name="month" value="{{ selected_month }}">
+  <input type="hidden" name="day"   value="{{ selected_day }}">
+
+  <div class="mx-auto w-full max-w-3xl apple-card p-6 overflow-x-auto">
+    <table id="emp-table" class="w-full text-sm text-left">
+      <thead class="border-b font-medium">
+        <tr class="whitespace-nowrap">
+          <th class="px-2 py-1">#</th>
+          <th class="px-2 py-1">الرقم</th>
+          <th class="px-2 py-1">الاسم</th>
+          <th class="px-2 py-1">Evaluation (0-100)</th>
+          <th class="px-2 py-1">Result</th>
+          <th class="px-2 py-1">Result Expectations</th>
+          <th class="px-2 py-1">Assessment Date</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+      {% for emp in employees %}
+        <tr data-emp="{{ emp.employee_number }}">
+          <td class="px-2">{{ forloop.counter }}</td>
+          <td class="px-2 font-mono">{{ emp.employee_number }}</td>
+          <td class="px-2">{{ emp.name }}</td>
+
+          <td class="px-2">
+            <input name="score_{{ emp.id }}" class="border rounded px-2 py-1 w-24
+                       focus:outline-none focus:ring-1 focus:ring-blue-500"
+                   oninput="calc('{{ emp.id }}'); enableSave();" />
+          </td>
+          <td class="px-2">
+            <input name="evaluation_{{ emp.id }}" id="eval-{{ emp.id }}"
+                   class="border rounded px-2 py-1 w-16 bg-gray-100"
+                   readonly />
+          </td>
+          <td class="px-2">
+            <input name="result_expectations_{{ emp.id }}" id="exp-{{ emp.id }}"
+                   class="border rounded px-2 py-1 w-44 bg-gray-100"
+                   readonly />
+          </td>
+          <td class="px-2">
+            <input type="date" name="date_{{ emp.id }}"
+                   value="{{ emp.last_evaluation_date|date:'Y-m-d' }}"
+                   class="border rounded px-2 py-1"
+                   oninput="enableSave();" />
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# زر الحفظ – ثابت أسفل الصفحة #}
+  <div class="fixed bottom-6 inset-x-0 flex justify-center pointer-events-none">
+    <button id="save-btn" type="submit" class="apple-btn pointer-events-auto"
+            disabled>حفظ جميع الدرجات</button>
+  </div>
+</form>
+{% else %}
+  {% if selected_year and selected_month and selected_day %}
+    <p class="text-center text-gray-500">لا توجد بيانات لهذا التاريخ.</p>
+  {% endif %}
+{% endif %}
+
+{# ---------- سكربت الحساب والحفظ ---------- #}
 <script>
-/* حساب الحرف والتوقعات */
-function calc(id) {
-  const score = document.getElementById('score-' + id);
-  const evalF = document.getElementById('eval-' + id);
-  const expF  = document.getElementById('exp-' + id);
+function calc(id){
+  const score = document.querySelector(`[name="score_${id}"]`).value.trim(),
+        evalEl = document.getElementById("eval-"+id),
+        expEl  = document.getElementById("exp-"+id);
 
-  let raw = score.value.trim();
-  if (!raw) { evalF.value = expF.value = ''; return; }
+  if(!score){ evalEl.value = expEl.value = ""; return; }
+  if(score.toLowerCase()==="absent"){ evalEl.value = expEl.value = "Absent"; return; }
 
-  if (raw.toLowerCase() === 'absent') {
-    evalF.value = expF.value = 'Absent';
-    return;
-  }
-  let s = parseFloat(raw);
-  if (isNaN(s)) { evalF.value = expF.value = ''; return; }
+  const s = parseFloat(score);
+  if(isNaN(s)){ evalEl.value = expEl.value = ""; return; }
 
-  if (s >= 85)       { evalF.value = 'A'; expF.value = 'Exceeds Expectations'; }
-  else if (s >= 75)  { evalF.value = 'B'; expF.value = 'Meets Expectations'; }
-  else if (s >= 60)  { evalF.value = 'C'; expF.value = 'Satisfactory'; }
-  else               { evalF.value = 'F'; expF.value = 'Does not meet expectations'; }
+  if(s>=85){ evalEl.value="A"; expEl.value="Exceeds Expectations"; }
+  else if(s>=75){ evalEl.value="B"; expEl.value="Meets Expectations"; }
+  else if(s>=60){ evalEl.value="C"; expEl.value="Satisfactory"; }
+  else { evalEl.value="F"; expEl.value="Does not meet expectations"; }
 }
 
-/* بحث بالرقم الوظيفي */
-const searchBox = document.getElementById('searchBox');
-searchBox?.addEventListener('input', () => {
-  const q = searchBox.value.trim();
-  document.querySelectorAll('#empTable tr').forEach(row => {
-    const num = row.children[1]?.textContent || '';
-    row.style.display = q && !num.includes(q) ? 'none' : '';
-  });
-});
+/* فَعّل الزر بمجرد أي تعديل */
+function enableSave(){
+  document.getElementById("save-btn").disabled=false;
+}
 
-/* تسهيل التنقّل بالـTab ــ يقفز تلقائياً للحقل التالي داخل الجدول فقط */
-document.querySelectorAll('#empTable input').forEach((inp, idx, all) => {
-  inp.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {             // أيضاً إذا ضغط Enter
-      e.preventDefault();
-      all[idx + 1]?.focus();
-    }
+/* بحث فوري بالرقم الوظيفي */
+document.getElementById("emp-search").addEventListener("input", e=>{
+  const q = e.target.value.trim();
+  document.querySelectorAll("#emp-table tbody tr").forEach(tr=>{
+    tr.style.display = q && !tr.dataset.emp.startsWith(q) ? "none" : "";
   });
 });
 </script>
