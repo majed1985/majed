@@ -172,6 +172,9 @@ class RecruitmentEmployee(models.Model):
     final_score = models.DecimalField(
         "الدرجة النهائية", max_digits=5, decimal_places=2, null=True, blank=True
     )
+    evaluation_date = models.DateField(
+        "تاريخ آخر تقييم", null=True, blank=True
+    )
 
     class Meta:
         verbose_name = "موظف استقدام"
@@ -182,7 +185,9 @@ class RecruitmentEmployee(models.Model):
 
     @property
     def last_evaluation_date(self):
-        """Return date of the most recent evaluation if available."""
+        """Return stored evaluation date or date of the most recent evaluation."""
+        if self.evaluation_date:
+            return self.evaluation_date
         evaluation = self.evaluations.order_by("-evaluated_at").first()
         return evaluation.evaluated_at.date() if evaluation else None
 

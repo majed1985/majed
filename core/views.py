@@ -458,13 +458,13 @@ def input_evaluation_results(request):
             # التاريخ
             if raw_date:
                 try:
-                    emp.last_evaluation_date = datetime.date.fromisoformat(raw_date)
+                    emp.evaluation_date = datetime.date.fromisoformat(raw_date)
                     changed = True
                 except ValueError:
                     pass
-            elif emp.last_evaluation_date is None:
+            elif emp.evaluation_date is None:
                 # افتراضيًا اجعل التاريخ مطابقًا لتاريخ التقرير
-                emp.last_evaluation_date = emp.report.report_date
+                emp.evaluation_date = emp.report.report_date
                 changed = True
 
             if changed:
