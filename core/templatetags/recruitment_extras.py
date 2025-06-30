@@ -54,3 +54,15 @@ def grade_symbol(score):
     if score >= 60:
         return "D"
     return "F"
+
+
+# ------------------------------------------------
+# General multiplication filter
+# ------------------------------------------------
+@register.filter
+def mul(value, arg):
+    """Return the product of ``value`` and ``arg`` for template usage."""
+    try:
+        return int(value) * int(arg)
+    except (TypeError, ValueError):
+        return ""
