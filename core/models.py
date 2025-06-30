@@ -161,6 +161,14 @@ class RecruitmentEmployee(models.Model):
     start_date = models.DateField("تاريخ المباشرة", null=True, blank=True)
     is_haramain = models.BooleanField("حرمين", default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+    report = models.ForeignKey(
+        "RecruitmentReport",
+        on_delete=models.CASCADE,
+        related_name="employees",
+        verbose_name="الكشف",
+        null=True,
+        blank=True,
+    )
     final_score = models.DecimalField(
         "الدرجة النهائية", max_digits=5, decimal_places=2, null=True, blank=True
     )
