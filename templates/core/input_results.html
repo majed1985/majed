@@ -3,27 +3,42 @@
 
 {% block title %}إدخال نتائج التقييم{% endblock %}
 
+{# -------------------------  CSS  ------------------------- #}
 {% block extra_css %}
-<!-- لمسة “Apple” بسيطة -->
 <style>
+  :root{ --divider:#cbd5e1; }                /* لون الحدّ الرأسي */
+
+  /* بطاقة زجاجية على أسلوب Apple */
   .apple-card{
-     @apply bg-white/70 backdrop-blur-lg border border-white/40 rounded-3xl shadow-xl;
+      @apply bg-white/70 backdrop-blur-lg border border-white/40
+             rounded-3xl shadow-xl;
   }
+  /* زر الحفظ الأخضر */
   .apple-btn{
-     @apply bg-green-600 hover:bg-green-700 text-white font-semibold rounded-full px-10 py-3
-            shadow-lg transition disabled:opacity-40 disabled:cursor-not-allowed;
+      @apply bg-green-600 hover:bg-green-700 text-white font-semibold
+             rounded-full px-10 py-3 shadow-lg transition
+             disabled:opacity-40 disabled:cursor-not-allowed;
   }
+
+  /* صناديق اختيار التاريخ (عرض ثابت ومتساوٍ) */
+  .date-select{ @apply w-24 text-center; }   /*  w-24 = ‎96px  */
+
+  /* لإظهار الحدّ بعد عمود الرقم الوظيفي عبر <col> */
+  .emp-no-col{ border-inline-end:2px solid var(--divider); }
 </style>
 {% endblock %}
 
+{# -------------------------  BODY  ------------------------ #}
 {% block content %}
 <h1 class="text-2xl font-semibold text-center mb-6">إدخال نتائج التقييم</h1>
 
-{# ---------- شريط اختيار التاريخ ---------- #}
+{# ---------- اختيار التاريخ ---------- #}
 <form method="get" class="flex flex-wrap justify-center gap-2 mb-6">
   {% for name, items, selected in date_selectors %}
-    <select name="{{ name }}" class="border rounded-lg px-3 py-2 bg-white shadow-sm
-                                     focus:outline-none focus:ring-2 focus:ring-blue-500"
+    <select name="{{ name }}"
+            class="date-select                                         <!-- العرض ثابت -->
+                   border rounded-lg px-3 py-2 bg-white shadow-sm
+                   focus:outline-none focus:ring-2 focus:ring-blue-500"
             onchange="this.form.submit()">
       <option value="">{{ name|capfirst }} …</option>
       {% for i in items %}
@@ -32,26 +47,29 @@
     </select>
   {% endfor %}
   <button type="submit"
-          class="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-6 py-2">
+          class="date-select bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg">
     عرض
   </button>
 </form>
 
-{# ---------- أداة البحث بالرقم الوظيفي ---------- #}
+{# ---------- البحث بالرقم الوظيفي ---------- #}
 <input id="emp-search" type="search" placeholder="بحث بالرقم الوظيفي…"
        class="block mx-auto mb-4 w-56 border rounded-lg px-3 py-2 shadow-sm
               focus:outline-none focus:ring-2 focus:ring-blue-500" />
 
-{# ---------- قائمة الملفات ---------- #}
+{# ---------- الملفات المتاحة ---------- #}
 {% if reports %}
   <div class="text-center mb-4">
     <span class="font-medium">الملفات المتاحة:</span>
     {% for rep in reports %}
-      <a href="{% url 'core:report_detail' rep.id %}" class="text-blue-600 underline mx-1">{{ rep.filename }}</a>
+      <a href="{% url 'core:report_detail' rep.id %}" class="text-blue-600 underline mx-1">
+        {{ rep.filename }}
+      </a>
     {% endfor %}
   </div>
 {% endif %}
 
+{# ------------------ جدول الموظفين ------------------ #}
 {% if employees %}
 <form method="post" id="grades-form">
   {% csrf_token %}
@@ -59,45 +77,66 @@
   <input type="hidden" name="month" value="{{ selected_month }}">
   <input type="hidden" name="day"   value="{{ selected_day }}">
 
-  <div class="mx-auto w-full max-w-3xl apple-card p-6 overflow-x-auto">
-    <table id="emp-table" class="w-full text-base text-left">
-      <thead class="border-b font-medium">
-        <tr class="whitespace-nowrap">
+  <div class="mx-auto w-11/12 max-w-5xl apple-card p-6 overflow-x-auto text-lg">
+
+    <table id="emp-table"
+           class="w-full text-right table-auto border-separate border-spacing-0">
+
+      <colgroup>
+        <col style="width:3rem" />
+        <col class="emp-no-col" style="width:7rem" />
+        <col />
+        <col style="width:8rem" />
+        <col style="width:5rem" />
+        <col style="width:18rem" />
+        <col style="width:9rem" />
+      </colgroup>
+
+      <thead class="border-b font-medium whitespace-nowrap">
+        <tr>
           <th class="px-2 py-1">#</th>
           <th class="px-2 py-1">الرقم</th>
           <th class="px-2 py-1">الاسم</th>
-          <th class="px-2 py-1">Evaluation (0-100)</th>
+          <th class="px-2 py-1">Evaluation&nbsp;(0-100)</th>
           <th class="px-2 py-1">Result</th>
-          <th class="px-2 py-1">Result Expectations</th>
-          <th class="px-2 py-1">Assessment Date</th>
+          <th class="px-2 py-1">Result&nbsp;Expectations</th>
+          <th class="px-2 py-1">Assessment&nbsp;Date</th>
         </tr>
       </thead>
+
       <tbody class="divide-y">
       {% for emp in employees %}
         <tr data-emp="{{ emp.employee_number }}">
           <td class="px-2">{{ forloop.counter }}</td>
+
           <td class="px-2 font-mono">{{ emp.employee_number }}</td>
-          <td class="px-2 whitespace-nowrap" style="white-space: nowrap;">{{ emp.name }}</td>
+
+          <td class="px-2 whitespace-nowrap">{{ emp.name }}</td>
 
           <td class="px-2">
-            <input name="score_{{ emp.id }}" class="border rounded px-2 py-1 w-24
-                       focus:outline-none focus:ring-1 focus:ring-blue-500"
+            <input name="score_{{ emp.id }}"
+                   value="{{ emp.final_score|default_if_none:'' }}"
+                   class="border rounded px-2 py-1 w-full text-center
+                          focus:outline-none focus:ring-1 focus:ring-blue-500"
                    oninput="calc('{{ emp.id }}'); enableSave();" />
           </td>
+
           <td class="px-2">
             <input name="evaluation_{{ emp.id }}" id="eval-{{ emp.id }}"
-                   class="border rounded px-2 py-1 w-16 bg-gray-100"
-                   readonly />
+                   value="{{ emp.evaluation|default_if_none:'' }}"
+                   class="border rounded px-2 py-1 w-full bg-gray-100 text-center" readonly />
           </td>
+
           <td class="px-2">
             <input name="result_expectations_{{ emp.id }}" id="exp-{{ emp.id }}"
-                   class="border rounded px-2 py-1 w-44 bg-gray-100"
-                   readonly />
+                   value="{{ emp.result_expectations|default_if_none:'' }}"
+                   class="border rounded px-2 py-1 w-full bg-gray-100 text-center" readonly />
           </td>
+
           <td class="px-2">
             <input type="date" name="date_{{ emp.id }}"
                    value="{{ emp.last_evaluation_date|default_if_none:emp.report.report_date|date:'Y-m-d' }}"
-                   class="border rounded px-2 py-1"
+                   class="border rounded px-2 py-1 w-full text-center"
                    oninput="enableSave();" />
           </td>
         </tr>
@@ -106,47 +145,41 @@
     </table>
   </div>
 
-  {# زر الحفظ – ثابت أسفل الصفحة #}
-  <div class="fixed bottom-6 inset-x-0 flex justify-center pointer-events-none">
-    <button id="save-btn" type="submit" class="apple-btn pointer-events-auto"
-            disabled>حفظ جميع الدرجات</button>
+  <div class="mt-8 flex justify-center">
+    <button id="save-btn" type="submit" class="apple-btn" disabled>
+      حفظ جميع الدرجات
+    </button>
   </div>
 </form>
-{% else %}
-  {% if selected_year and selected_month and selected_day %}
-    <p class="text-center text-gray-500">لا توجد بيانات لهذا التاريخ.</p>
-  {% endif %}
+{% elif selected_year and selected_month and selected_day %}
+  <p class="text-center text-gray-500">لا توجد بيانات لهذا التاريخ.</p>
 {% endif %}
 
-{# ---------- سكربت الحساب والحفظ ---------- #}
+{# ------------------  JavaScript  ------------------ #}
 <script>
 function calc(id){
-  const score = document.querySelector(`[name="score_${id}"]`).value.trim(),
-        evalEl = document.getElementById("eval-"+id),
-        expEl  = document.getElementById("exp-"+id);
+  const score  = document.querySelector(`[name="score_${id}"]`).value.trim(),
+        evalEl = document.getElementById('eval-'+id),
+        expEl  = document.getElementById('exp-'+id);
 
-  if(!score){ evalEl.value = expEl.value = ""; return; }
-  if(score.toLowerCase()==="absent"){ evalEl.value = expEl.value = "Absent"; return; }
+  if(!score){ evalEl.value = expEl.value = ''; return; }
+  if(score.toLowerCase()==='absent'){ evalEl.value = expEl.value = 'Absent'; return; }
 
   const s = parseFloat(score);
-  if(isNaN(s)){ evalEl.value = expEl.value = ""; return; }
+  if(isNaN(s)){ evalEl.value = expEl.value = ''; return; }
 
-  if(s>=85){ evalEl.value="A"; expEl.value="Exceeds Expectations"; }
-  else if(s>=75){ evalEl.value="B"; expEl.value="Meets Expectations"; }
-  else if(s>=60){ evalEl.value="C"; expEl.value="Satisfactory"; }
-  else { evalEl.value="F"; expEl.value="Does not meet expectations"; }
+  if(s>=85){ evalEl.value='A'; expEl.value='Exceeds Expectations'; }
+  else if(s>=75){ evalEl.value='B'; expEl.value='Meets Expectations'; }
+  else if(s>=60){ evalEl.value='C'; expEl.value='Satisfactory'; }
+  else         { evalEl.value='F'; expEl.value='Does not meet expectations'; }
 }
 
-/* فَعّل الزر بمجرد أي تعديل */
-function enableSave(){
-  document.getElementById("save-btn").disabled=false;
-}
+function enableSave(){ document.getElementById('save-btn').disabled = false; }
 
-/* بحث فوري بالرقم الوظيفي */
-document.getElementById("emp-search").addEventListener("input", e=>{
+document.getElementById('emp-search').addEventListener('input', e=>{
   const q = e.target.value.trim();
-  document.querySelectorAll("#emp-table tbody tr").forEach(tr=>{
-    tr.style.display = q && !tr.dataset.emp.startsWith(q) ? "none" : "";
+  document.querySelectorAll('#emp-table tbody tr').forEach(tr=>{
+    tr.style.display = q && !tr.dataset.emp.startsWith(q) ? 'none' : '';
   });
 });
 </script>
