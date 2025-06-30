@@ -21,10 +21,7 @@
 
 {# ---------- شريط اختيار التاريخ ---------- #}
 <form method="get" class="flex flex-wrap justify-center gap-2 mb-6">
-  {% for name, items, selected in
-        ('year', years, selected_year),
-        ('month', months, selected_month),
-        ('day', days, selected_day) %}
+  {% for name, items, selected in date_selectors %}
     <select name="{{ name }}" class="border rounded-lg px-3 py-2 bg-white shadow-sm
                                      focus:outline-none focus:ring-2 focus:ring-blue-500"
             onchange="this.form.submit()">

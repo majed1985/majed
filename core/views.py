@@ -480,18 +480,38 @@ def input_evaluation_results(request):
         except Exception:
             selected = []
 
+    years = sorted(dates.keys(), reverse=True)
+    months = (
+        sorted(dates.get(int(year), {}).keys(), reverse=True)
+        if year and year.isdigit()
+        else []
+    )
+    days = (
+        sorted(dates.get(int(year), {}).get(int(month), []), reverse=True)
+        if year and month and year.isdigit() and month.isdigit()
+        else []
+    )
+
     context = {
-        "years": sorted(dates.keys(), reverse=True),
-        "months": sorted(dates.get(int(year), {}).keys(), reverse=True) if year and year.isdigit() else [],
-        "days": sorted(dates.get(int(year), {}).get(int(month), []), reverse=True)
-                if year and month and year.isdigit() and month.isdigit() else [],
-        "selected_year":  year,
+        "years": years,
+        "months": months,
+        "days": days,
+        "selected_year": year,
         "selected_month": month,
-        "selected_day":   day,
-        "employees":      selected,
+        "selected_day": day,
+        "employees": selected,
         "reports": RecruitmentReport.objects.filter(
             report_date=datetime.date(int(year), int(month), int(day))
-        ) if (year and month and day and year.isdigit() and month.isdigit() and day.isdigit()) else [],
+        )
+        if (
+            year and month and day and year.isdigit() and month.isdigit() and day.isdigit()
+        )
+        else [],
+        "date_selectors": [
+            ("year", years, year),
+            ("month", months, month),
+            ("day", days, day),
+        ],
     }
     return render(request, "core/input_results.html", context)
 
