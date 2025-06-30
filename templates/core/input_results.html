@@ -122,8 +122,8 @@
           </td>
 
           <td class="px-2">
-            <input name="evaluation_{{ emp.id }}" id="eval-{{ emp.id }}"
-                   value="{{ emp.evaluation|default_if_none:'' }}"
+            <input name="result_{{ emp.id }}" id="res-{{ emp.id }}"
+                   value="{{ emp.result|default_if_none:'' }}"
                    class="border rounded px-2 py-1 w-full bg-gray-100 text-center" readonly />
           </td>
 
@@ -159,7 +159,7 @@
 <script>
 function calc(id){
   const score  = document.querySelector(`[name="score_${id}"]`).value.trim(),
-        evalEl = document.getElementById('eval-'+id),
+        evalEl = document.getElementById('res-'+id),
         expEl  = document.getElementById('exp-'+id);
 
   if(!score){ evalEl.value = expEl.value = ''; return; }
