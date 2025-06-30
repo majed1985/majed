@@ -54,3 +54,21 @@ def grade_symbol(score):
     if score >= 60:
         return "D"
     return "F"
+
+
+# ------------------------------------------------
+# General multiplication filter
+# ------------------------------------------------
+@register.filter
+def mul(value, arg):
+    """
+    إرجاع حاصل ضرب «value × arg» داخل القالب.
+
+    أمثلة:
+        {{ 3|mul:5 }}        →  15
+        {{ forloop.counter|mul:10 }}
+    """
+    try:
+        return int(value) * int(arg)
+    except (TypeError, ValueError):
+        return ""
