@@ -24,6 +24,21 @@ import calendar
 import logging
 from decimal import Decimal
 
+EMPLOYEE_COLUMN_MAP = {
+    "serial": ["serial", "التسلسل"],
+    "employee_number": ["employee_number", "الرقم الوظيفي"],
+    "name": ["name", "الاسم عربي", "الاسم"],
+    "name_en": ["name_en", "الاسم انجليزي"],
+    "passport_number": ["passport_number", "رقم الجواز"],
+    "nationality": ["nationality", "الجنسية"],
+    "official_job": ["official_job", "المهنة"],
+    "sponsor_name": ["sponsor_name", "اسم الكفيل"],
+    "evaluation": ["evaluation", "Evaluation"],
+    "result": ["result", "Result"],
+    "result_expectations": ["result_expectations", "Result Expectations"],
+    "start_date": ["start_date", "تاريخ المباشرة"],
+}
+
 
 logger = logging.getLogger(__name__)
 
@@ -292,7 +307,7 @@ def upload_employees(request):
                 columns = df.columns.tolist()
                 rows = df.fillna("").to_dict(orient="records")
 
-                RecruitmentReport.objects.create(
+                report = RecruitmentReport.objects.create(
                     filename=excel.name,
                     uploaded_by=request.user if request.user.is_authenticated else None,
                     report_date=report_date,
@@ -301,7 +316,32 @@ def upload_employees(request):
                     columns=columns,
                     rows=rows,
                 )
-                saved += 1
+
+                added = 0
+                for row in rows:
+                    data = {}
+                    for field, keys in EMPLOYEE_COLUMN_MAP.items():
+                        for key in keys:
+                            if key in row and row[key] != "":
+                                val = row[key]
+                                if field == "start_date" and val:
+                                    try:
+                                        val = pd.to_datetime(val).date()
+                                    except Exception:
+                                        val = None
+                                data[field] = val
+                                break
+                    if any(v is not None and v != "" for v in data.values()):
+                        RecruitmentEmployee.objects.create(
+                            report=report,
+                            is_haramain=is_haramain,
+                            **data,
+                        )
+                        added += 1
+                if added == 0:
+                    errors.append(f"{excel.name}: لا توجد بيانات موظفين")
+                else:
+                    saved += 1
 
             success_msg = None
             error_msg = None
@@ -473,7 +513,9 @@ def input_evaluation_results(request):
             d = int(day)
             date_obj = datetime.date(y, m, d)
             selected = list(
-                RecruitmentEmployee.objects.filter(created_at__date=date_obj).order_by("created_at")
+                RecruitmentEmployee.objects.filter(
+                    report__report_date=date_obj
+                ).order_by("serial", "id")
             )
         except (TypeError, ValueError):
             selected = []
@@ -501,7 +543,9 @@ def input_evaluation_results(request):
             d = int(day)
             date_obj = datetime.date(y, m, d)
             selected = list(
-                RecruitmentEmployee.objects.filter(created_at__date=date_obj).order_by("created_at")
+                RecruitmentEmployee.objects.filter(
+                    report__report_date=date_obj
+                ).order_by("serial", "id")
             )
         except (TypeError, ValueError):
             selected = []
