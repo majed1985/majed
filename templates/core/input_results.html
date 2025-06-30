@@ -139,16 +139,20 @@
     </table>
   </div>
 
-  <div class="mt-6 text-center">
-    <button type="submit"
-            class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-8 py-2
-                   shadow-lg transition-colors">
+  {# --- زر الحفظ --------------------------------------------------- #}
+  <div class="mt-6 flex justify-end">   {# يجعله بمحاذاة اليمين #}
+    <button
+      type="submit"
+      class="rounded-lg bg-[#0a84ff] px-8 py-2 font-semibold text-white
+             shadow transition hover:shadow-lg
+             focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0a84ff]"
+    >
       حفظ جميع الدرجات
     </button>
   </div>
 </form>
 {% elif selected_year and selected_month and selected_day %}
-  <p class="text-center text-gray-500 mt-12">لا توجد بيانات لهذا التاريخ.</p>
+  <p class="text-center text-gray-500">لا توجد بيانات لهذا التاريخ.</p>
 {% endif %}
 
 {% if not years %}
