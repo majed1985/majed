@@ -1,672 +1,567 @@
-# core/views.py
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse
-from django.db.models import Q
+from __future__ import annotations
+
+import calendar
+import datetime
+import logging
+import re
+from decimal import Decimal
+
+import pandas as pd
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
-from django.urls import reverse
-from django.core.mail import send_mail
 from django.contrib.sites.shortcuts import get_current_site
+from django.db.models import Q
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import redirect, render
 from django.template.defaultfilters import filesizeformat
-import re
-from openpyxl import load_workbook
-import pandas as pd
-from django.utils import timezone
-import datetime
+from django.urls import reverse
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.http import require_POST
-import os
-import calendar
-import logging
-from decimal import Decimal
-
-EMPLOYEE_COLUMN_MAP = {
-    "serial": ["serial", "التسلسل"],
-    "employee_number": ["employee_number", "الرقم الوظيفي"],
-    "name": ["name", "الاسم عربي", "الاسم"],
-    "name_en": ["name_en", "الاسم انجليزي"],
-    "passport_number": ["passport_number", "رقم الجواز"],
-    "nationality": ["nationality", "الجنسية"],
-    "official_job": ["official_job", "المهنة"],
-    "sponsor_name": ["sponsor_name", "اسم الكفيل"],
-    "evaluation": ["evaluation", "Evaluation"],
-    "result": ["result", "Result"],
-    "result_expectations": ["result_expectations", "Result Expectations"],
-    "start_date": ["start_date", "تاريخ المباشرة"],
-}
-
-
-logger = logging.getLogger(__name__)
-
-from .models import (
-    Learner,
-    Nationality,
-    Sector,
-    Department,
-    Section,
-    RecruitmentEmployee,
-    EmployeeEvaluation,
-    RecruitmentReport,
-)
 
 from .forms import (
     EmployeeEvaluationForm,
-    RecruitmentReportForm,
     RecruitmentReportEditForm,
+    RecruitmentReportForm,
+)
+from .models import (
+    Department,
+    Learner,
+    Nationality,
+    RecruitmentEmployee,
+    RecruitmentReport,
+    Sector,
+    Section,
 )
 
+logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# أسماء الأعمدة المقبولة في ملفات الإكسل
+# ------------------------------------------------------------------------------
+EMPLOYEE_COLUMN_MAP: dict[str, list[str]] = {
+    "serial":              ["serial", "التسلسل"],
+    "employee_number":     ["employee_number", "الرقم الوظيفي"],
+    "name":                ["name", "الاسم عربي", "الاسم"],
+    "name_en":             ["name_en", "الاسم انجليزي"],
+    "passport_number":     ["passport_number", "رقم الجواز"],
+    "nationality":         ["nationality", "الجنسية"],
+    "official_job":        ["official_job", "المهنة"],
+    "sponsor_name":        ["sponsor_name", "اسم الكفيل"],
+    "evaluation":          ["evaluation", "Evaluation"],
+    "result":              ["result", "Result"],
+    "result_expectations": ["result_expectations", "Result Expectations"],
+    "start_date":          ["start_date", "تاريخ المباشرة"],
+}
+
+# ------------------------------------------------------------------------------
+# صفحات عامة
+# ------------------------------------------------------------------------------
+
 def home(request):
-    """الصفحة الرئيسية (تُظهر بطاقة المتدرّب عند تسجيل الدخول)."""
-    learner = (
-        Learner.objects.filter(user=request.user).first()
-        if request.user.is_authenticated
-        else None
-    )
+    learner = Learner.objects.filter(user=request.user).first() if request.user.is_authenticated else None
     return render(request, "core/home.html", {"learner": learner})
 
 
-# ---------------------------------------------------------------------------
 def recruitment_dashboard(request):
-    """الواجهة الرئيسية لخطوات تقييم موظفي الاستقدام."""
-    logger.debug("Rendering recruitment dashboard")
-    logger.debug("Template absolute path: %s", os.path.abspath(__file__))
     return render(request, "core/recruitment_dashboard.html")
 
 
 def recruitment_placeholder(request, page):
-    """صفحات مبدئية لكل مرحلة."""
     return render(request, "core/recruitment_placeholder.html", {"page": page})
 
+# ------------------------------------------------------------------------------
+# التسجيل / التفعيل / تسجيل الدخول
+# ------------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
+def _validate_registration(data) -> list[str]:
+    errs: list[str] = []
+    required = {
+        "first_name_ar": "الاسم الأول (عربي)",
+        "last_name_ar":  "اسم العائلة (عربي)",
+        "first_name_en": "First Name (English)",
+        "last_name_en":  "Last Name (English)",
+        "employee_number": "الرقم الوظيفي",
+        "department": "الإدارة",
+        "section": "القسم",
+        "email": "البريد الإلكتروني",
+        "password": "كلمة المرور",
+        "confirm_password": "تأكيد كلمة المرور",
+    }
+    for f, lbl in required.items():
+        if not data.get(f):
+            errs.append(f"حقل «{lbl}» مطلوب")
+
+    if data.get("email") and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", data["email"]):
+        errs.append("صيغة البريد الإلكتروني غير صحيحة")
+    if data.get("national_id") and not re.fullmatch(r"\d{10}", data["national_id"]):
+        errs.append("رقم الهوية يجب أن يتكوّن من 10 أرقام")
+    if data.get("password") != data.get("confirm_password"):
+        errs.append("كلمة المرور غير متطابقة")
+    if User.objects.filter(username=data.get("email")).exists():
+        errs.append("هذا البريد الإلكتروني مستخدم بالفعل")
+    return errs
+
+
 def register(request):
-    """تسجيل متدرّب جديد ثم إرسال رابط التفعيل إلى بريده الإلكتروني."""
+    if request.method != "POST":
+        return render(request, "core/register.html")
 
-    if request.method == "POST":
-        data = request.POST
-        errors = []
+    errors = _validate_registration(request.POST)
+    if errors:
+        for e in errors:  # type: ignore
+            messages.error(request, e)
+        return render(request, "core/register.html")
 
-        # -------- تحقّق من الحقول المطلوبة ------------------------------------
-        required_fields = {
-            "first_name_ar": "الاسم الأول (عربي)",
-            "last_name_ar": "اسم العائلة (عربي)",
-            "first_name_en": "First Name (English)",
-            "last_name_en": "Last Name (English)",
-            "employee_number": "الرقم الوظيفي",
-            "department": "الإدارة",
-            "section": "القسم",
-            "email": "البريد الإلكتروني",
-            "password": "كلمة المرور",
-            "confirm_password": "تأكيد كلمة المرور",
-        }
-        for field, label in required_fields.items():
-            if not data.get(field):
-                errors.append(f"حقل «{label}» مطلوب")
+    d = request.POST
+    user = User.objects.create_user(
+        username=d["email"],
+        email=d["email"],
+        password=d["password"],
+        is_active=False,
+    )
 
-        # -------- تحقّقات إضافية --------------------------------------------
-        if data.get("email") and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", data["email"]):
-            errors.append("صيغة البريد الإلكتروني غير صحيحة")
+    dept, _ = Department.objects.get_or_create(name=d["department"].strip())
+    sect = Section.objects.get_or_create(name=d["section"].strip(), department=dept)[0]
+    nat    = Nationality.objects.get_or_create(name=d["nationality"].strip())[0] if d.get("nationality") else None
+    sector = Sector.objects.get_or_create(name=d["sector"].strip())[0]       if d.get("sector") else None
 
-        if data.get("national_id") and not re.fullmatch(r"\d{10}", data["national_id"]):
-            errors.append("رقم الهوية يجب أن يتكوّن من 10 أرقام")
+    Learner.objects.create(
+        first_name_ar=d["first_name_ar"],
+        last_name_ar=d["last_name_ar"],
+        first_name_en=d["first_name_en"],
+        last_name_en=d["last_name_en"],
+        employee_number=d["employee_number"],
+        department=dept,
+        section=sect,
+        manager=d.get("manager", ""),
+        email=d["email"],
+        mobile=d.get("mobile", ""),
+        national_id=d.get("national_id", ""),
+        nationality=nat,
+        sector=sector,
+        user=user,
+    )
 
-        if data.get("password") != data.get("confirm_password"):
-            errors.append("كلمة المرور غير متطابقة")
+    site  = get_current_site(request)
+    uid   = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    link  = f"http://{site.domain}{reverse('core:activate', args=[uid, token])}"
+    user.email_user("تفعيل الحساب", f"مرحباً،\nلإتمام التسجيل اضغط الرابط:\n{link}")
 
-        if User.objects.filter(username=data.get("email")).exists():
-            errors.append("هذا البريد الإلكتروني مستخدم بالفعل")
-
-        # -------- في حال وجود أخطاء ------------------------------------------
-        if errors:
-            for err in errors:
-                messages.error(request, err)
-            return render(request, "core/register.html", status=200)
-
-        # ---------------------------------------------------------------------
-        # إنشاء المستخدم (مُعطَّل لحين التفعيل)
-        user = User.objects.create_user(
-            username=data["email"],
-            email=data["email"],
-            password=data["password"],
-            is_active=False,
-        )
-
-        # ----- حفظ الإدارة والقسم كعلاقات فعلية --------------------------------
-        dept_name = data.get("department", "").strip()
-        sect_name = data.get("section", "").strip()
-        nat_name  = data.get("nationality", "").strip()
-        sectr_name= data.get("sector", "").strip()
-
-        department = None
-        if dept_name:
-            department, _ = Department.objects.get_or_create(name=dept_name)
-
-        section = None
-        if sect_name and department:
-            section, _ = Section.objects.get_or_create(
-                name=sect_name,
-                department=department,
-            )
-
-        nationality = None
-        if nat_name:
-            nationality, _ = Nationality.objects.get_or_create(name=nat_name)
-        sector = None
-        if sectr_name:
-            sector, _ = Sector.objects.get_or_create(name=sectr_name)
-
-        manager_name = data.get("manager", "").strip()
-
-        # إنشاء سجل المتدرّب مع العلاقات المرجعية
-        Learner.objects.create(
-            first_name_ar=data["first_name_ar"],
-            last_name_ar=data["last_name_ar"],
-            first_name_en=data["first_name_en"],
-            last_name_en=data["last_name_en"],
-            employee_number=data["employee_number"],
-            department=department,
-            section=section,
-            manager=manager_name,
-            email=data["email"],
-            mobile=data.get("mobile", ""),
-            national_id=data.get("national_id", ""),
-            nationality=nationality,
-            sector=sector,
-            user=user,
-        )
-
-        # -------- إرسال رسالة التفعيل ----------------------------------------
-        current_site = get_current_site(request)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        token = default_token_generator.make_token(user)
-        activation_link = f"http://{current_site.domain}{reverse('core:activate', args=[uid, token])}"
-
-        subject = "تفعيل الحساب"
-        message = (
-            "مرحباً،\n"
-            "لإكمال التسجيل يرجى الضغط على الرابط التالي:\n"
-            f"{activation_link}"
-        )
-        send_mail(subject, message, None, [user.email])
-
-        messages.success(
-            request,
-            "تم إنشاء الحساب بنجاح. يرجى التحقق من بريدك الإلكتروني لتفعيله.",
-        )
-        return redirect("core:register_thanks")
-
-    # GET
-    return render(request, "core/register.html")
+    messages.success(request, "تم إنشاء الحساب بنجاح. تفقد بريدك الإلكتروني للتفعيل.")
+    return redirect("core:register_thanks")
 
 
-# ---------------------------------------------------------------------------
 def register_thanks(request):
-    """صفحة الشكر بعد إنشاء الحساب."""
     return render(request, "core/register_thanks.html")
 
 
-# ---------------------------------------------------------------------------
 def activate(request, uidb64, token):
-    """تفعيل الحساب عند الضغط على رابط البريد."""
     try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
+        uid  = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+    except Exception:
         user = None
 
     if user and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
-        messages.success(request, "تم تفعيل الحساب بنجاح، يمكنك تسجيل الدخول الآن.")
+        messages.success(request, "تم تفعيل الحساب، بإمكانك تسجيل الدخول.")
         return redirect("core:login")
-
     return render(request, "core/activation_invalid.html", status=400)
 
 
-# ---------------------------------------------------------------------------
 def login_view(request):
-    """تسجيل الدخول للمستخدمين المفعّلين."""
     form = AuthenticationForm(request, data=request.POST or None)
-
     if request.method == "POST" and form.is_valid():
         login(request, form.get_user())
         return redirect("core:home")
-
     if form.errors:
         messages.error(request, "اسم المستخدم أو كلمة المرور غير صحيحة")
-
     return render(request, "core/login.html", {"form": form})
 
+# ------------------------------------------------------------------------------
+# صفحات الخدمات
+# ------------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
-def other_services(request):
-    """عرض صفحة الخدمات الأخرى مع كروت الخدمات."""
-    return render(request, "core/other_services.html")
-
-
-# ---------------------------------------------------------------------------
-def service_page(request, service):
-    """عرض صفحة خدمة معينة بناءً على الاسم الممرر."""
-    # صفحة "أعمالي" لها قالب مخصص يعرض كروت الخدمات
+def service_page(request, service: str):
     if service == "my_works":
         return render(request, "core/my_works.html")
 
-    service_names = {
-        "needs_analysis": "تحليل الاحتياجات التدريبية",
-        "share_knowledge": "شاركنا المعرفة",
-        "youtube_tracks": "مسارات دورات اليوتيوب",
-        "skills_program": "برنامج مهارات",
-        "articles": "مقالات",
-        "my_certificates": "شهاداتي",
-        "course_announcements": "إعلانات الدورات التدريبية",
-        "my_works": "أعمالي",
+    names = {
+        "needs_analysis":      "تحليل الاحتياجات التدريبية",
+        "share_knowledge":     "شاركنا المعرفة",
+        "youtube_tracks":      "مسارات دورات اليوتيوب",
+        "skills_program":      "برنامج مهارات",
+        "articles":            "مقالات",
+        "my_certificates":     "شهاداتي",
+        "course_announcements":"إعلانات الدورات التدريبية",
+        "my_works":            "أعمالي",
     }
-
-    name = service_names.get(service, service)
-    context = {"service_name": name}
-    return render(request, "core/service_page.html", context)
+    return render(request, "core/service_page.html", {"service_name": names.get(service, service)})
 
 
-# ---------------------------------------------------------------------------
+def other_services(request):
+    return render(request, "core/other_services.html")
+
+# ------------------------------------------------------------------------------
+# أدوات مساعدة (إكسل)
+# ------------------------------------------------------------------------------
+
+def _extract_employee_data(row: dict) -> dict:
+    data: dict[str, object] = {}
+    for field, aliases in EMPLOYEE_COLUMN_MAP.items():
+        for a in aliases:
+            if a in row and row[a] not in ("", None):
+                val = row[a]
+                if field == "start_date":
+                    try:
+                        val = pd.to_datetime(val).date()
+                    except Exception:
+                        val = None
+                data[field] = val
+                break
+    serial = str(data.get("serial", "")).strip()
+    if not serial.isdigit():
+        return {}
+    data["serial"] = int(serial)
+    return data
+
+# ------------------------------------------------------------------------------
+# رفع كشوف الاستقدام
+# ------------------------------------------------------------------------------
+
 def upload_employees(request):
-    """رفع كشوف الموظفين وتخزينها كما هي في قاعدة البيانات."""
-
     if request.method == "POST":
         form = RecruitmentReportForm(request.POST, request.FILES)
-        if form.is_valid():
-            report_date = form.cleaned_data["report_date"]
-            is_haramain = form.cleaned_data["is_haramain"] == "true"
-            files = request.FILES.getlist("file")
-            saved = 0
-            skipped = []
-
-            errors = []
-
-            for excel in files:
-                if RecruitmentReport.objects.filter(
-                    filename=excel.name,
-                    report_date=report_date,
-                    is_haramain=is_haramain,
-                ).exists():
-                    skipped.append(excel.name)
-                    continue
-
-                try:
-                    df = pd.read_excel(excel)
-                except (ValueError, OSError) as e:  # pragma: no cover - just logging
-                    logger.error("Failed reading %s: %s", excel.name, e)
-                    errors.append(f"{excel.name}: {e}")
-                    continue
-
-                columns = df.columns.tolist()
-                rows = df.fillna("").to_dict(orient="records")
-
-                report = RecruitmentReport.objects.create(
-                    filename=excel.name,
-                    uploaded_by=request.user if request.user.is_authenticated else None,
-                    report_date=report_date,
-                    file_size=excel.size,
-                    is_haramain=is_haramain,
-                    columns=columns,
-                    rows=rows,
-                )
-
-                added = 0
-                for row in rows:
-                    data = {}
-                    for field, keys in EMPLOYEE_COLUMN_MAP.items():
-                        for key in keys:
-                            if key in row and row[key] != "":
-                                val = row[key]
-                                if field == "start_date" and val:
-                                    try:
-                                        val = pd.to_datetime(val).date()
-                                    except Exception:
-                                        val = None
-                                data[field] = val
-                                break
-                    if any(v is not None and v != "" for v in data.values()):
-                        RecruitmentEmployee.objects.create(
-                            report=report,
-                            is_haramain=is_haramain,
-                            **data,
-                        )
-                        added += 1
-                if added == 0:
-                    errors.append(f"{excel.name}: لا توجد بيانات موظفين")
-                else:
-                    saved += 1
-
-            success_msg = None
-            error_msg = None
-            if saved:
-                success_msg = f"تم حفظ {saved} كشف بنجاح"
-            if skipped:
-                error_msg = "تم تخطي الكشوف المكررة: " + ", ".join(skipped)
-            if errors:
-                msg = "أخطاء أثناء قراءة الملفات: " + "; ".join(errors)
-                error_msg = f"{error_msg}; {msg}" if error_msg else msg
-
-            if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                return JsonResponse({"success": success_msg, "error": error_msg})
-
-            if success_msg:
-                messages.success(request, success_msg)
-            if error_msg:
-                messages.error(request, error_msg)
+        if not form.is_valid():
+            messages.error(request, form.errors.as_text())
             return redirect("core:upload_employees")
-        else:
-            if request.headers.get("x-requested-with") == "XMLHttpRequest":
-                return JsonResponse({"error": form.errors.as_text()}, status=400)
-    else:
-        form = RecruitmentReportForm()
 
+        report_date = form.cleaned_data["report_date"]
+        is_haramain = form.cleaned_data["is_haramain"] == "true"
+
+        saved, skipped, errors = 0, [], []
+
+        for excel in request.FILES.getlist("file"):
+            if RecruitmentReport.objects.filter(filename=excel.name, report_date=report_date, is_haramain=is_haramain).exists():
+                skipped.append(excel.name)
+                continue
+
+            try:
+                df = pd.read_excel(excel)
+            except Exception as exc:
+                logger.exception("Failed reading %s", excel.name)
+                errors.append(f"{excel.name}: {exc}")
+                continue
+
+            report = RecruitmentReport.objects.create(
+                filename   = excel.name,
+                uploaded_by= request.user if request.user.is_authenticated else None,
+                report_date= report_date,
+                file_size  = excel.size,
+                is_haramain= is_haramain,
+                columns    = list(df.columns),
+                rows       = df.fillna("").to_dict(orient="records"),
+            )
+
+            added = 0
+            for r in report.rows:
+                data = _extract_employee_data({k.strip(): v for k, v in r.items()})
+                if not data:
+                    continue
+                RecruitmentEmployee.objects.create(report=report, is_haramain=is_haramain, **data)
+                added += 1
+
+            saved += bool(added)
+            if not added:
+                errors.append(f"{excel.name}: لا توجد بيانات موظفين")
+
+        if saved:
+            messages.success(request, f"تم حفظ {saved} كشف بنجاح")
+        if skipped:
+            messages.warning(request, "تم تخطي الملفات المكررة: " + ", ".join(skipped))
+        if errors:
+            messages.error(request, "أخطاء: " + "; ".join(errors))
+        return redirect("core:upload_employees")
+
+    # ---------- GET ----------
+    form = RecruitmentReportForm()
     filter_type = request.GET.get("type")
-    year = request.GET.get("year")
-    month = request.GET.get("month")
-    search = request.GET.get("q")
+    year, month, search = request.GET.get("year"), request.GET.get("month"), request.GET.get("q")
 
-    reports_qs = RecruitmentReport.objects.all()
-    if filter_type in ["true", "false"]:
-        reports_qs = reports_qs.filter(is_haramain=(filter_type == "true"))
+    qs = RecruitmentReport.objects.all()
+    if filter_type in ("true", "false"):
+        qs = qs.filter(is_haramain=(filter_type == "true"))
     if year:
-        reports_qs = reports_qs.filter(report_date__year=year)
+        qs = qs.filter(report_date__year=year)
     if month:
-        reports_qs = reports_qs.filter(report_date__month=month)
+        qs = qs.filter(report_date__month=month)
     if search:
-        reports_qs = reports_qs.filter(filename__icontains=search)
+        qs = qs.filter(filename__icontains=search)
 
-    reports_qs = reports_qs.order_by("-report_date")
-    reports = {}
-    total_employees = 0
-    latest = reports_qs.first()
-    for rep in reports_qs:
-        dt = rep.report_date
-        total_employees += len(rep.rows)
-        reports.setdefault(dt.year, {}).setdefault(dt.month, {}).setdefault(dt.day, {}).setdefault(rep.is_haramain, []).append(rep)
+    qs = qs.order_by("-report_date")
+    grouped: dict[int, dict[int, dict[int, list[RecruitmentReport]]]] = {}
+    for rep in qs:
+        d = rep.report_date
+        grouped.setdefault(d.year, {}).setdefault(d.month, {}).setdefault(d.day, []).append(rep)
 
     stats = {
-        "total_reports": reports_qs.count(),
-        "total_employees": total_employees,
-        "latest": latest,
+        "total_reports": qs.count(),
+        "total_employees": sum(len(r.rows) for r in qs),
+        "latest": qs.first(),
     }
 
-    reports_list = reports_qs
-
-    context = {
+    return render(request, "core/upload_employees.html", {
         "form": form,
-        "reports": reports,
-        "reports_list": reports_list,
+        "reports": grouped,
+        "reports_list": qs,
         "filter_type": filter_type,
         "stats": stats,
         "year": year,
         "month": month,
         "search": search,
-    }
-    return render(request, "core/upload_employees.html", context)
+    })
 
+# ------------------------------------------------------------------------------
+# مشاهد التقارير / الموظفين
+# ------------------------------------------------------------------------------
 
 def report_detail(request, pk):
-    """عرض تفاصيل كشف استقدام محفوظ."""
-    report = RecruitmentReport.objects.get(pk=pk)
-    return render(request, "core/report_detail.html", {"report": report})
+    return render(request, "core/report_detail.html", {"report": RecruitmentReport.objects.get(pk=pk)})
 
 
 @require_POST
 def delete_report(request, pk):
-    """حذف كشف استقدام."""
-    report = RecruitmentReport.objects.filter(pk=pk).first()
-    if report:
-        report.delete()
-        messages.success(request, "تم حذف الكشف")
+    RecruitmentReport.objects.filter(pk=pk).delete()
+    messages.success(request, "تم حذف الكشف")
     return redirect("core:upload_employees")
 
 
 def export_report_excel(request, pk):
-    """تصدير كشف إلى ملف Excel."""
-    report = RecruitmentReport.objects.get(pk=pk)
-    df = pd.DataFrame(report.rows, columns=report.columns)
-    response = HttpResponse(content_type="application/vnd.ms-excel")
-    response["Content-Disposition"] = f"attachment; filename={report.filename}"
-    df.to_excel(response, index=False)
-    return response
+    rep = RecruitmentReport.objects.get(pk=pk)
+    df  = pd.DataFrame(rep.rows, columns=rep.columns)
+    resp = HttpResponse(content_type="application/vnd.ms-excel")
+    resp["Content-Disposition"] = f'attachment; filename="{rep.filename}"'
+    df.to_excel(resp, index=False)
+    return resp
 
 
 def edit_report(request, pk):
-    """تعديل بيانات كشف استقدام."""
-    report = RecruitmentReport.objects.get(pk=pk)
-    if request.method == "POST":
-        form = RecruitmentReportEditForm(request.POST, instance=report)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "تم تحديث الكشف")
-            return redirect("core:upload_employees")
-    else:
-        form = RecruitmentReportEditForm(instance=report)
-    return render(request, "core/edit_report.html", {"form": form, "report": report})
+    rep = RecruitmentReport.objects.get(pk=pk)
+    form = RecruitmentReportEditForm(request.POST or None, instance=rep)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "تم تحديث الكشف")
+        return redirect("core:upload_employees")
+    return render(request, "core/edit_report.html", {"form": form, "report": rep})
 
+# ------------------------------------------------------------------------------
+# تقييم فردي سريع
+# ------------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
 def evaluate_employee(request, pk):
-    """تعبئة استمارة تقييم موظف معين."""
-    employee = RecruitmentEmployee.objects.get(pk=pk)
-    if request.method == "POST":
-        form = EmployeeEvaluationForm(request.POST, request.FILES)
-        if form.is_valid():
-            evaluation = form.save(commit=False)
-            evaluation.employee = employee
-            evaluation.evaluator = request.user if request.user.is_authenticated else None
-            evaluation.is_haramain = employee.is_haramain
-            evaluation.save()
-            messages.success(request, "تم حفظ التقييم")
-            return redirect("core:evaluate_employee", pk=employee.pk)
-    else:
-        form = EmployeeEvaluationForm()
-    return render(
-        request,
-        "core/evaluate_employee.html",
-        {"form": form, "employee": employee},
-    )
+    emp  = RecruitmentEmployee.objects.get(pk=pk)
+    form = EmployeeEvaluationForm(request.POST or None, request.FILES or None)
+    if request.method == "POST" and form.is_valid():
+        ev = form.save(commit=False)
+        ev.employee   = emp
+        ev.evaluator  = request.user if request.user.is_authenticated else None
+        ev.is_haramain = emp.is_haramain
+        ev.save()
+        messages.success(request, "تم حفظ التقييم")
+        return redirect("core:evaluate_employee", pk=emp.pk)
+    return render(request, "core/evaluate_employee.html", {"form": form, "employee": emp})
 
 
 @require_POST
 def set_final_score(request, pk):
-    """تعديل الدرجة النهائية لموظف معين."""
-    employee = RecruitmentEmployee.objects.get(pk=pk)
-    score = request.POST.get("final_score")
+    emp = RecruitmentEmployee.objects.get(pk=pk)
     try:
-        employee.final_score = Decimal(score)
-    except (TypeError, ValueError, ArithmeticError):
+        emp.final_score = Decimal(request.POST.get("final_score"))
+        emp.save()
+    except Exception:
         pass
-    else:
-        employee.save()
     return redirect("core:upload_employees")
 
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# تحويل الدرجة الرقمية → الحرف والتوقعات
+# ------------------------------------------------------------------------------
+
+def _grade_mapping(score: Decimal) -> tuple[str, str]:
+    s = float(score)
+    if 85 <= s <= 100:
+        return "A", "Exceeds Expectations"
+    if 75 <= s <= 84:
+        return "B", "Meets Expectations"
+    if 60 <= s <= 74:
+        return "C", "Satisfactory"
+    return "F", "Does not meet expectations"
+
+# ------------------------------------------------------------------------------
+# إدخال نتائج التقييم دفعة واحدة
+# ------------------------------------------------------------------------------
+
 def input_evaluation_results(request):
-    """إدخال الدرجات لعدد من الموظفين دفعة واحدة."""
-    reports_all = RecruitmentReport.objects.all()
+    # قائمة التواريخ
+    dates: dict[int, dict[int, set[int]]] = {}
+    for rep in RecruitmentReport.objects.all():
+        d = rep.report_date
+        dates.setdefault(d.year, {}).setdefault(d.month, set()).add(d.day)
 
-    report_dates = {}
-    for rep in reports_all:
-        dt = rep.report_date
-        report_dates.setdefault(dt.year, {}).setdefault(dt.month, set()).add(dt.day)
+    year, month, day = request.GET.get("year"), request.GET.get("month"), request.GET.get("day")
+    selected: list[RecruitmentEmployee] = []
 
-    year = request.GET.get("year")
-    month = request.GET.get("month")
-    day = request.GET.get("day")
-    selected = []
+    def _sel(d: datetime.date) -> list[RecruitmentEmployee]:
+        return list(RecruitmentEmployee.objects.filter(report__report_date=d).order_by("serial", "id"))
 
+    # ---------- POST (حفظ) ----------
     if request.method == "POST":
-        year = request.POST.get("year")
-        month = request.POST.get("month")
-        day = request.POST.get("day")
+        year, month, day = request.POST["year"], request.POST["month"], request.POST["day"]
         try:
-            y = int(year)
-            m = int(month)
-            d = int(day)
-            date_obj = datetime.date(y, m, d)
-            selected = list(
-                RecruitmentEmployee.objects.filter(
-                    report__report_date=date_obj
-                ).order_by("serial", "id")
-            )
-        except (TypeError, ValueError):
+            date_obj = datetime.date(int(year), int(month), int(day))
+            selected = _sel(date_obj)
+        except Exception:
             selected = []
+
         for emp in selected:
-            score = request.POST.get(f"score_{emp.id}")
-            result_val = request.POST.get(f"result_{emp.id}")
+            raw_score  = request.POST.get(f"score_{emp.id}", "").strip()
+            raw_eval   = request.POST.get(f"evaluation_{emp.id}", "").strip()
+            raw_expect = request.POST.get(f"result_expectations_{emp.id}", "").strip()
+            raw_date   = request.POST.get(f"date_{emp.id}", "").strip()
             changed = False
-            if score:
-                try:
-                    emp.final_score = Decimal(score)
-                    changed = True
-                except (ValueError, ArithmeticError):
-                    pass
-            if result_val is not None:
-                emp.result = result_val
+
+            # Absent
+            if raw_score.lower() == "absent":
+                emp.final_score = None
+                emp.evaluation = emp.result_expectations = "Absent"
                 changed = True
+            elif raw_score:
+                try:
+                    dec = Decimal(raw_score)
+                    emp.final_score = dec
+                    emp.evaluation, emp.result_expectations = _grade_mapping(dec)
+                    changed = True
+                except Exception:
+                    pass
+
+            # يدوي
+            if raw_eval:
+                emp.evaluation = raw_eval; changed = True
+            if raw_expect:
+                emp.result_expectations = raw_expect; changed = True
+
+            # التاريخ
+            if raw_date:
+                try:
+                    emp.last_evaluation_date = datetime.date.fromisoformat(raw_date)
+                    changed = True
+                except ValueError:
+                    pass
+            elif emp.last_evaluation_date is None:
+                # افتراضيًا اجعل التاريخ مطابقًا لتاريخ التقرير
+                emp.last_evaluation_date = emp.report.report_date
+                changed = True
+
             if changed:
                 emp.save()
+
         messages.success(request, "تم حفظ الدرجات")
         return redirect(f"{reverse('core:input_evaluation_results')}?year={year}&month={month}&day={day}")
-    else:
+
+    # ---------- GET ----------
+    elif year and month and day and year.isdigit() and month.isdigit() and day.isdigit():
         try:
-            y = int(year)
-            m = int(month)
-            d = int(day)
-            date_obj = datetime.date(y, m, d)
-            selected = list(
-                RecruitmentEmployee.objects.filter(
-                    report__report_date=date_obj
-                ).order_by("serial", "id")
-            )
-        except (TypeError, ValueError):
+            selected = _sel(datetime.date(int(year), int(month), int(day)))
+        except Exception:
             selected = []
 
-    years = sorted(report_dates.keys(), reverse=True)
-    months = (
-        sorted(report_dates.get(int(year), {}).keys(), reverse=True)
-        if year and year.isdigit()
-        else []
-    )
-    days = (
-        sorted(report_dates.get(int(year), {}).get(int(month), []), reverse=True)
-        if year and month and year.isdigit() and month.isdigit()
-        else []
-    )
-
-    reports = []
-    if year and month and day and year.isdigit() and month.isdigit() and day.isdigit():
-        date_obj = datetime.date(int(year), int(month), int(day))
-        reports = RecruitmentReport.objects.filter(report_date=date_obj)
-
     context = {
-        "years": years,
-        "months": months,
-        "days": days,
-        "selected_year": year,
+        "years": sorted(dates.keys(), reverse=True),
+        "months": sorted(dates.get(int(year), {}).keys(), reverse=True) if year and year.isdigit() else [],
+        "days": sorted(dates.get(int(year), {}).get(int(month), []), reverse=True)
+                if year and month and year.isdigit() and month.isdigit() else [],
+        "selected_year":  year,
         "selected_month": month,
-        "selected_day": day,
-        "employees": selected,
-        "reports": reports,
+        "selected_day":   day,
+        "employees":      selected,
+        "reports": RecruitmentReport.objects.filter(
+            report_date=datetime.date(int(year), int(month), int(day))
+        ) if (year and month and day and year.isdigit() and month.isdigit() and day.isdigit()) else [],
     }
     return render(request, "core/input_results.html", context)
 
+# ------------------------------------------------------------------------------
+# شجرة الفلترة و JSON
+# ------------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
 def tree_filter_page(request):
-    """عرض صفحة الفلترة الشجرية التجريبية."""
     return render(request, "core/tree_filter.html")
 
 
 def tree_filter_data(request):
-    """توليد بيانات الشجرة على شكل JSON من قاعدة البيانات."""
-    reports = RecruitmentReport.objects.all()
-    grouped = {}
-    for rep in reports:
-        dt = rep.report_date
-        grouped.setdefault(dt.year, {}).setdefault(dt.month, set()).add(dt.day)
+    grouped: dict[int, dict[int, set[int]]] = {}
+    for rep in RecruitmentReport.objects.all():
+        d = rep.report_date
+        grouped.setdefault(d.year, {}).setdefault(d.month, set()).add(d.day)
 
-    data = []
-    for year in sorted(grouped.keys(), reverse=True):
-        data.append({"id": f"{year}", "parent": "#", "text": str(year)})
-        for month in sorted(grouped[year].keys(), reverse=True):
-            month_id = f"{year}-{month:02d}"
-            month_name = calendar.month_name[month]
-            data.append({"id": month_id, "parent": f"{year}", "text": month_name})
-            for day in sorted(grouped[year][month], reverse=True):
-                day_id = f"{month_id}-{day:02d}"
-                data.append({"id": day_id, "parent": month_id, "text": f"{day:02d}"})
-    return JsonResponse(data, safe=False)
+    res: list[dict] = []
+    for y in sorted(grouped.keys(), reverse=True):
+        res.append({"id": str(y), "parent": "#", "text": str(y)})
+        for m in sorted(grouped[y], reverse=True):
+            mid = f"{y}-{m:02d}"
+            res.append({"id": mid, "parent": str(y), "text": calendar.month_name[m]})
+            for d in sorted(grouped[y][m], reverse=True):
+                res.append({"id": f"{mid}-{d:02d}", "parent": mid, "text": f"{d:02d}"})
+    return JsonResponse(res, safe=False)
 
 
 def tree_filter_results(request):
-    """إرجاع الكشوف حسب العناصر المحددة في الشجرة."""
-    selected = request.GET.getlist("selected[]")
-    qs = RecruitmentReport.objects.all()
-    if selected:
-        query = Q()
-        for node in selected:
-            parts = node.split("-")
-            if len(parts) == 1:
-                query |= Q(report_date__year=int(parts[0]))
-            elif len(parts) == 2:
-                query |= Q(report_date__year=int(parts[0]), report_date__month=int(parts[1]))
-            elif len(parts) == 3:
-                query |= Q(
-                    report_date__year=int(parts[0]),
-                    report_date__month=int(parts[1]),
-                    report_date__day=int(parts[2]),
-                )
-        qs = qs.filter(query)
-    qs = qs.order_by("-report_date")
-    data = [
-        {
-            "id": r.id,
-            "filename": r.filename,
-            "report_date": r.report_date.strftime("%Y-%m-%d"),
-            "is_haramain": r.is_haramain,
-        }
-        for r in qs
-    ]
-    return JsonResponse(data, safe=False)
+    sel = request.GET.getlist("selected[]")
+    qs  = RecruitmentReport.objects.all()
+    if sel:
+        q = Q()
+        for node in sel:
+            p = node.split("-")
+            if len(p) == 1:
+                q |= Q(report_date__year=int(p[0]))
+            elif len(p) == 2:
+                q |= Q(report_date__year=int(p[0]), report_date__month=int(p[1]))
+            elif len(p) == 3:
+                q |= Q(report_date__year=int(p[0]), report_date__month=int(p[1]), report_date__day=int(p[2]))
+        qs = qs.filter(q)
+    return JsonResponse([
+        {"id": r.id, "filename": r.filename, "report_date": r.report_date.isoformat(), "is_haramain": r.is_haramain}
+        for r in qs.order_by("-report_date")
+    ], safe=False)
 
+# ------------------------------------------------------------------------------
+# API بسيطة للكشوف (JSON)
+# ------------------------------------------------------------------------------
 
 def reports_json(request):
-    """Return recruitment reports as JSON with optional filtering."""
     qs = RecruitmentReport.objects.all()
-    search = request.GET.get("q")
-    filter_type = request.GET.get("type")
-    start_date = request.GET.get("start")
-    end_date = request.GET.get("end")
-
-    if search:
-        qs = qs.filter(filename__icontains=search)
-    if filter_type in ["true", "false"]:
-        qs = qs.filter(is_haramain=(filter_type == "true"))
-    if start_date:
-        qs = qs.filter(report_date__gte=start_date)
-    if end_date:
-        qs = qs.filter(report_date__lte=end_date)
+    if q := request.GET.get("q"):
+        qs = qs.filter(filename__icontains=q)
+    if t := request.GET.get("type") in ("true", "false"):
+        qs = qs.filter(is_haramain=(t == "true"))
+    if start := request.GET.get("start"):
+        qs = qs.filter(report_date__gte=start)
+    if end := request.GET.get("end"):
+        qs = qs.filter(report_date__lte=end)
 
     qs = qs.order_by("-uploaded_at")
-    data = [
+    return JsonResponse([
         {
             "id": r.id,
             "filename": r.filename,
             "uploaded_at": r.uploaded_at.strftime("%Y-%m-%d %H:%M"),
-            "file_size": r.file_size,
             "file_size_formatted": filesizeformat(r.file_size),
             "is_haramain": r.is_haramain,
-            "report_date": r.report_date.strftime("%Y-%m-%d"),
-        }
-        for r in qs
-    ]
-    return JsonResponse(data, safe=False)
+            "report_date": r.report_date.isoformat(),
+        } for r in qs
+    ], safe=False)
