@@ -65,6 +65,7 @@ urlpatterns = [
     path("recruitment/report/<int:pk>/delete/", views.delete_report, name="delete_report"),
     path("recruitment/report/<int:pk>/edit/", views.edit_report, name="edit_report"),
     path("recruitment/report/<int:pk>/export/", views.export_report_excel, name="export_report"),
+    path("recruitment/report/<int:pk>/import/", views.import_report_records, name="import_report_records"),
     path("recruitment/reports/json/", views.reports_json, name="reports_json"),
     path("recruitment/<int:pk>/evaluate/", views.evaluate_employee, name="evaluate_employee"),
     path("recruitment/input-results/", views.input_evaluation_results, name="input_evaluation_results"),

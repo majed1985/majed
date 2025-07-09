@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.db import IntegrityError
 from django.utils import timezone
+from django.urls import reverse
 import datetime
 
 from .models import (
@@ -10,6 +11,7 @@ from .models import (
     Department,
     Section,
 )
+from .models import LegacyRecruitmentRecord, RecruitmentReport
 
 
 class LearnerModelTest(TestCase):
@@ -126,4 +128,47 @@ class RecruitmentReportModelTest(TestCase):
             rows=[{"c": 1}],
         )
         self.assertEqual(str(rep), f"file.xlsx - {dt}")
+
+
+class ImportReportRecordsTest(TestCase):
+    """اختبار استيراد السجلات من الكشف المرفوع."""
+
+    def setUp(self):
+        from django.contrib.auth.models import User
+        self.user = User.objects.create_user(username="u", password="p")
+        self.report = RecruitmentReport.objects.create(
+            filename="safety.xlsx",
+            report_date=datetime.date(2024, 2, 1),
+            file_size=1,
+            is_haramain=False,
+            columns=[
+                "EMP NO",
+                "Name Arabic",
+                "Name English",
+                "Passport No",
+                "Nationality",
+                "Actual Profession",
+                "Sponsor Name",
+            ],
+            rows=[
+                {
+                    "EMP NO": "100",
+                    "Name Arabic": "أحمد",
+                    "Name English": "Ahmed",
+                    "Passport No": "P1",
+                    "Nationality": "SA",
+                    "Actual Profession": "Worker",
+                    "Sponsor Name": "ABC",
+                }
+            ],
+        )
+
+    def test_import_creates_record_once(self):
+        self.client.force_login(self.user)
+        url = reverse("core:import_report_records", args=[self.report.pk])
+        self.client.post(url)
+        self.assertEqual(LegacyRecruitmentRecord.objects.count(), 1)
+        # Second call should not duplicate
+        self.client.post(url)
+        self.assertEqual(LegacyRecruitmentRecord.objects.count(), 1)
 
