@@ -20,7 +20,7 @@ from django.template.defaultfilters import filesizeformat
 from django.urls import reverse
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 
 from .forms import (
     EmployeeEvaluationForm,
@@ -585,3 +585,43 @@ def reports_json(request):
             "report_date": r.report_date.isoformat(),
         } for r in qs
     ], safe=False)
+
+
+@require_http_methods(["GET", "POST"])
+def update_database(request):
+    """Update employee results then return an Excel file."""
+    if request.method == "POST":
+        for emp in RecruitmentEmployee.objects.all():
+            if emp.final_score is None:
+                ev = emp.evaluations.order_by("-evaluated_at").first()
+                if ev:
+                    total = (
+                        Decimal(ev.appearance_score)
+                        + Decimal(ev.experience_score)
+                        + Decimal(ev.skills_score)
+                    ) / Decimal(3)
+                    emp.final_score = total.quantize(Decimal("0.01"))
+                    emp.evaluation_date = ev.evaluated_at.date()
+            if emp.final_score is not None:
+                emp.result, emp.result_expectations = _grade_mapping(emp.final_score)
+            emp.save()
+
+        data = RecruitmentEmployee.objects.values(
+            "serial",
+            "employee_number",
+            "name",
+            "final_score",
+            "result",
+            "result_expectations",
+            "evaluation_date",
+            "start_date",
+            "is_haramain",
+        )
+        df = pd.DataFrame(list(data))
+        resp = HttpResponse(content_type="application/vnd.ms-excel")
+        filename = f"recruitment_placeholder_{datetime.date.today():%Y%m%d}.xlsx"
+        resp["Content-Disposition"] = f'attachment; filename="{filename}"'
+        df.to_excel(resp, index=False)
+        return resp
+
+    return render(request, "core/update_db.html")

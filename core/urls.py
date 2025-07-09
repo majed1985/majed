@@ -69,6 +69,7 @@ urlpatterns = [
     path("recruitment/<int:pk>/evaluate/", views.evaluate_employee, name="evaluate_employee"),
     path("recruitment/input-results/", views.input_evaluation_results, name="input_evaluation_results"),
     path("recruitment/<int:pk>/final-score/", views.set_final_score, name="set_final_score"),
+    path("recruitment/update-db/", views.update_database, name="update_database"),
 
     # فلترة شجرية تجريبية
     path("tree-filter/", views.tree_filter_page, name="tree_filter"),
