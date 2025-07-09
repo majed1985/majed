@@ -51,3 +51,17 @@ npm run build:css &
 python manage.py migrate
 python manage.py runserver
 ```
+
+## Importing Legacy Data from Excel
+
+Old recruitment spreadsheets can be imported directly using a custom Django
+management command. This avoids indentation issues that may occur when pasting
+code into the interactive shell.
+
+```bash
+python manage.py import_legacy_excel path/to/legacy.xlsx
+```
+
+Replace `path/to/legacy.xlsx` with the Excel file you wish to import. The
+command cleans the column names and bulk creates
+`LegacyRecruitmentRecord` entries.
