@@ -64,4 +64,6 @@ python manage.py import_legacy_excel path/to/legacy.xlsx
 
 Replace `path/to/legacy.xlsx` with the Excel file you wish to import. The
 command cleans the column names and bulk creates
-`LegacyRecruitmentRecord` entries.
+`LegacyRecruitmentRecord` entries. Numeric evaluation columns are converted
+using `pandas.to_numeric`, so invalid values become `NULL`, while textual
+results such as "The assessment cannot be conducted" are stored unchanged.

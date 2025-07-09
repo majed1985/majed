@@ -54,6 +54,13 @@ class Command(BaseCommand):
         df.columns = [clean_name(c) for c in df.columns]
         df = df.rename(columns={k: v for k, v in COLUMN_FIELD_MAP.items() if k in df.columns})
 
+        # Clean textual result values and convert evaluation to numeric when possible
+        if 'result' in df.columns:
+            df['result'] = df['result'].fillna('').apply(clean_name)
+            df.loc[df['result'] == '', 'result'] = None
+        if 'evaluation' in df.columns:
+            df['evaluation'] = pd.to_numeric(df['evaluation'], errors='coerce')
+
         model_fields = {f.name for f in LegacyRecruitmentRecord._meta.get_fields()
                         if f.concrete and not f.auto_created}
 
