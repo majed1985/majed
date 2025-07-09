@@ -10,6 +10,7 @@ from .models import (
     RecruitmentEmployee,
     EmployeeEvaluation,
     RecruitmentReport,
+    LegacyRecruitmentRecord,
 )
 
 
@@ -65,4 +66,10 @@ class EmployeeEvaluationAdmin(admin.ModelAdmin):
 class RecruitmentReportAdmin(admin.ModelAdmin):
     list_display = ("filename", "report_date", "uploaded_at")
     search_fields = ("filename",)
+
+
+@admin.register(LegacyRecruitmentRecord)
+class LegacyRecruitmentRecordAdmin(admin.ModelAdmin):
+    list_display = ("emp_id", "name_ar", "year")
+    search_fields = ("emp_id", "name_ar", "name_en")
 
