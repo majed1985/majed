@@ -260,3 +260,49 @@ class RecruitmentReport(models.Model):
     def __str__(self) -> str:
         return f"{self.filename} - {self.report_date}"
 
+
+class LegacyRecruitmentRecord(models.Model):
+    """سجل قديم لبيانات الاستقدام."""
+
+    employees = models.CharField("Employees", max_length=100)
+    emp_id = models.CharField("Emp. ID", max_length=50)
+    evaluation = models.DecimalField(
+        "Evaliuation", max_digits=5, decimal_places=2, null=True, blank=True
+    )
+    result = models.CharField("Result", max_length=100, null=True, blank=True)
+    result_expectations = models.CharField(
+        "Result Expectations", max_length=100, null=True, blank=True
+    )
+    name_ar = models.CharField("Name (Arabic)", max_length=100, null=True, blank=True)
+    name_en = models.CharField("Name (English)", max_length=100, null=True, blank=True)
+    passport_no = models.CharField("Passport No.", max_length=100, null=True, blank=True)
+    nationality = models.CharField("Nationality", max_length=50, null=True, blank=True)
+    profession = models.CharField("Profession", max_length=100, null=True, blank=True)
+    profession_group = models.CharField(
+        "Profession Group", max_length=100, null=True, blank=True
+    )
+    sponsor = models.CharField("Sponsor", max_length=100, null=True, blank=True)
+    date = models.DateField("Date", null=True, blank=True)
+    month = models.CharField("Month", max_length=20, null=True, blank=True)
+    month_number = models.PositiveSmallIntegerField(
+        "Month Number", null=True, blank=True
+    )
+    sector = models.CharField("Sector", max_length=100, null=True, blank=True)
+    team_group = models.CharField("Team Group", max_length=100, null=True, blank=True)
+    project = models.CharField("Project", max_length=100, null=True, blank=True)
+    management = models.CharField("Management", max_length=100, null=True, blank=True)
+    project_manager = models.CharField(
+        "Project Manager", max_length=100, null=True, blank=True
+    )
+    director_of_management = models.CharField(
+        "Director of Management", max_length=100, null=True, blank=True
+    )
+    year = models.PositiveIntegerField("Year", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "سجل استقدام قديم"
+        verbose_name_plural = "سجلات الاستقدام القديمة"
+
+    def __str__(self) -> str:
+        return f"{self.emp_id} - {self.name_ar or self.name_en}".strip()
+
