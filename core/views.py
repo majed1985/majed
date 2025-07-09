@@ -247,12 +247,19 @@ def _extract_employee_data(row: dict) -> dict:
                         val = pd.to_datetime(val).date()
                     except Exception:
                         val = None
+                elif field == "evaluation":
+                    try:
+                        val = Decimal(str(val))
+                    except Exception:
+                        val = None
                 data[field] = val
                 break
+
     serial = str(data.get("serial", "")).strip()
-    if not serial.isdigit():
-        return {}
-    data["serial"] = int(serial)
+    if serial.isdigit():
+        data["serial"] = int(serial)
+    else:
+        data.pop("serial", None)
     return data
 
 # ------------------------------------------------------------------------------
@@ -298,7 +305,15 @@ def upload_employees(request):
                 data = _extract_employee_data({k.strip(): v for k, v in r.items()})
                 if not data:
                     continue
-                RecruitmentEmployee.objects.create(report=report, is_haramain=is_haramain, **data)
+                emp_no = str(data.pop("employee_number", "")).strip()
+                if not emp_no:
+                    continue
+                defaults = {k: v for k, v in data.items() if v is not None}
+                defaults.update({"report": report, "is_haramain": is_haramain})
+                RecruitmentEmployee.objects.update_or_create(
+                    employee_number=emp_no,
+                    defaults=defaults,
+                )
                 added += 1
 
             saved += bool(added)

@@ -2,7 +2,10 @@ from django.test import TestCase
 from django.db import IntegrityError
 from django.utils import timezone
 from django.urls import reverse
+from django.core.files.uploadedfile import SimpleUploadedFile
 import datetime
+import io
+import pandas as pd
 
 from .models import (
     Learner,
@@ -11,7 +14,7 @@ from .models import (
     Department,
     Section,
 )
-from .models import LegacyRecruitmentRecord, RecruitmentReport
+from .models import LegacyRecruitmentRecord, RecruitmentReport, RecruitmentEmployee
 
 
 class LearnerModelTest(TestCase):
@@ -171,4 +174,39 @@ class ImportReportRecordsTest(TestCase):
         # Second call should not duplicate
         self.client.post(url)
         self.assertEqual(LegacyRecruitmentRecord.objects.count(), 1)
+
+
+class UploadEmployeesUpdateTest(TestCase):
+    """التأكد من تحديث السجلات الموجودة بدلاً من تكرارها."""
+
+    def _excel_file(self, rows):
+        buf = io.BytesIO()
+        pd.DataFrame(rows).to_excel(buf, index=False)
+        buf.seek(0)
+        return SimpleUploadedFile("rep.xlsx", buf.getvalue(), content_type="application/vnd.ms-excel")
+
+    def test_update_existing_employee(self):
+        url = reverse("core:upload_employees")
+
+        file1 = self._excel_file([
+            {"serial": 1, "employee_number": "10", "name": "Ali", "Evaluation": "The assessment cannot be conducted"},
+        ])
+        self.client.post(
+            url,
+            {"report_date": "2024-01-01", "is_haramain": "false", "file": file1},
+        )
+        self.assertEqual(RecruitmentEmployee.objects.count(), 1)
+        emp = RecruitmentEmployee.objects.get(employee_number="10")
+        self.assertEqual(emp.name, "Ali")
+
+        file2 = self._excel_file([
+            {"serial": 1, "employee_number": "10", "name": "Moh"},
+        ])
+        self.client.post(
+            url,
+            {"report_date": "2024-01-02", "is_haramain": "false", "file": file2},
+        )
+        self.assertEqual(RecruitmentEmployee.objects.count(), 1)
+        emp.refresh_from_db()
+        self.assertEqual(emp.name, "Moh")
 
