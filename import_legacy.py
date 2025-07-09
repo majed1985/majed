@@ -51,11 +51,14 @@ def main():
     # Rename columns to match model field names
     df = df.rename(columns={k: v for k, v in COLUMN_FIELD_MAP.items() if k in df.columns})
 
-    # Remove rows with the unwanted result value
+    # Clean textual result values but keep all rows
     if 'result' in df.columns:
         df['result'] = df['result'].fillna('').apply(clean_name)
-        df = df[df['result'] != 'The assessment cannot be conducted']
         df.loc[df['result'] == '', 'result'] = None
+
+    # Convert evaluation to numeric when possible
+    if 'evaluation' in df.columns:
+        df['evaluation'] = pd.to_numeric(df['evaluation'], errors='coerce')
 
     # Determine model fields
     model_fields = {
