@@ -1,0 +1,84 @@
+import pandas as pd
+from core.models import LegacyRecruitmentRecord
+
+# Path to the Excel file to import. Adjust this before running.
+EXCEL_FILE = 'legacy.xlsx'
+
+# Mapping from Excel columns to LegacyRecruitmentRecord fields after cleaning
+COLUMN_FIELD_MAP = {
+    'Employees': 'employees',
+    'Emp. ID': 'emp_id',
+    'Evaliuation': 'evaluation',
+    'Result': 'result',
+    'Result Expectations': 'result_expectations',
+    'Name (Arabic)': 'name_ar',
+    'Name (English)': 'name_en',
+    'Passport No.': 'passport_no',
+    'Nationality': 'nationality',
+    'Profession': 'profession',
+    'Profession Group': 'profession_group',
+    'Sponsor': 'sponsor',
+    'Date': 'date',
+    'Month': 'month',
+    'Month Number': 'month_number',
+    'Sector': 'sector',
+    'Team Group': 'team_group',
+    'Project': 'project',
+    'Management': 'management',
+    'Project Manager': 'project_manager',
+    'Director of Management': 'director_of_management',
+    'Year': 'year',
+}
+
+# Characters sometimes hidden in Excel headers
+INVISIBLE_CHARS = {'\u200f', '\ufeff'}
+
+
+def clean_name(name: str) -> str:
+    """Strip whitespace and remove invisible characters."""
+    for ch in INVISIBLE_CHARS:
+        name = name.replace(ch, '')
+    return name.strip()
+
+
+def main():
+    # Load the Excel file
+    df = pd.read_excel(EXCEL_FILE)
+
+    # Clean column names
+    df.columns = [clean_name(c) for c in df.columns]
+
+    # Rename columns to match model field names
+    df = df.rename(columns={k: v for k, v in COLUMN_FIELD_MAP.items() if k in df.columns})
+
+    # Remove rows with the unwanted result value
+    if 'result' in df.columns:
+        df['result'] = df['result'].fillna('').apply(clean_name)
+        df = df[df['result'] != 'The assessment cannot be conducted']
+        df.loc[df['result'] == '', 'result'] = None
+
+    # Determine model fields
+    model_fields = {
+        f.name for f in LegacyRecruitmentRecord._meta.get_fields()
+        if f.concrete and not f.auto_created
+    }
+
+    records = []
+    for row in df.to_dict(orient='records'):
+        cleaned = {
+            f: (None if pd.isna(row.get(f)) else row.get(f))
+            for f in model_fields
+        }
+        if all(value is None for value in cleaned.values()):
+            continue
+        records.append(LegacyRecruitmentRecord(**cleaned))
+
+    if records:
+        LegacyRecruitmentRecord.objects.bulk_create(records)
+        print(f'Imported {len(records)} records')
+    else:
+        print('No records imported')
+
+
+if __name__ == '__main__':
+    main()
