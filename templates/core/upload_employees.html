@@ -128,6 +128,12 @@
                 <a href="{% url 'core:export_report' rep.id %}" class="action-btn tooltip text-green-600" data-tooltip="تحميل">
                   <i class="fa-solid fa-download"></i>
                 </a>
+                <form method="post" action="{% url 'core:import_report_records' rep.id %}" class="inline">
+                  {% csrf_token %}
+                  <button type="submit" class="action-btn tooltip text-purple-600" data-tooltip="إضافة إلى قاعدة البيانات">
+                    <i class="fa-solid fa-database"></i>
+                  </button>
+                </form>
                 <form method="post" action="{% url 'core:delete_report' rep.id %}" class="inline">
                   {% csrf_token %}
                   <button type="submit" class="action-btn tooltip text-red-600" data-tooltip="حذف">

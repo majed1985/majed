@@ -33,6 +33,7 @@ from .models import (
     Nationality,
     RecruitmentEmployee,
     RecruitmentReport,
+    LegacyRecruitmentRecord,
     Sector,
     Section,
 )
@@ -56,6 +57,29 @@ EMPLOYEE_COLUMN_MAP: dict[str, list[str]] = {
     "result_expectations": ["result_expectations", "Result Expectations"],
     "start_date":          ["start_date", "تاريخ المباشرة"],
 }
+
+# ------------------------------------------------------------------------------
+# أعمدة كشف السلامة لاستيراد السجلات القديمة
+# ------------------------------------------------------------------------------
+LEGACY_COLUMN_MAP = {
+    "EMP NO": "emp_id",
+    "Emp. ID": "emp_id",
+    "Name Arabic": "name_ar",
+    "Name English": "name_en",
+    "Passport No": "passport_no",
+    "Nationality": "nationality",
+    "Actual Profession": "profession",
+    "Sponsor Name": "sponsor",
+}
+
+INVISIBLE_CHARS = {"\u200f", "\ufeff"}
+
+
+def _clean_header(name: str) -> str:
+    """Remove invisible characters and surrounding whitespace from a header."""
+    for ch in INVISIBLE_CHARS:
+        name = name.replace(ch, "")
+    return name.strip()
 
 # ------------------------------------------------------------------------------
 # صفحات عامة
@@ -359,6 +383,53 @@ def edit_report(request, pk):
         messages.success(request, "تم تحديث الكشف")
         return redirect("core:upload_employees")
     return render(request, "core/edit_report.html", {"form": form, "report": rep})
+
+
+@require_POST
+def import_report_records(request, pk):
+    """Import selected report rows into LegacyRecruitmentRecord."""
+    report = RecruitmentReport.objects.get(pk=pk)
+    required = {
+        "emp_id",
+        "name_ar",
+        "name_en",
+        "passport_no",
+        "nationality",
+        "profession",
+        "sponsor",
+    }
+
+    added = 0
+    skipped = 0
+    for raw in report.rows:
+        row = { _clean_header(k): v for k, v in raw.items() }
+        data = { field: row.get(col) for col, field in LEGACY_COLUMN_MAP.items() if col in row }
+        if not all(data.get(f) for f in required):
+            skipped += 1
+            logger.warning("Skipping row with missing data: %s", row)
+            continue
+        emp_id = str(data["emp_id"]).strip()
+        if LegacyRecruitmentRecord.objects.filter(emp_id=emp_id).exists():
+            skipped += 1
+            continue
+        LegacyRecruitmentRecord.objects.create(
+            emp_id=emp_id,
+            name_ar=str(data["name_ar"]).strip(),
+            name_en=str(data["name_en"]).strip(),
+            passport_no=str(data["passport_no"]).strip(),
+            nationality=str(data["nationality"]).strip(),
+            profession=str(data["profession"]).strip(),
+            sponsor=str(data["sponsor"]).strip(),
+        )
+        added += 1
+
+    if added:
+        messages.success(request, f"تم إضافة {added} سجل بنجاح")
+    else:
+        messages.info(request, "لا توجد سجلات جديدة لإضافتها")
+    if skipped:
+        messages.warning(request, f"تم تجاهل {skipped} سجل مكرر أو ناقص البيانات")
+    return redirect("core:upload_employees")
 
 # ------------------------------------------------------------------------------
 # تقييم فردي سريع
