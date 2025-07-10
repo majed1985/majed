@@ -95,6 +95,7 @@ LEGACY_COLUMN_MAP = {
     "Employees": "emp_id",
     "emp.id": "emp_id",
     "Name Arabic": "name_ar",
+    "Name": "name_ar",
     "name.(arabic)": "name_ar",
     "Name English": "name_en",
     "name.(english)": "name_en",
@@ -494,6 +495,10 @@ def import_report_records(request, pk):
         name_ar = (row.get("name_ar") or row.get("name") or "").strip() or None
         name_en = (row.get("name_en") or "").strip() or None
         profession = (row.get("profession") or row.get("official_job") or "").strip() or None
+
+        if not name_ar and not name_en:
+            # Skip completely blank rows
+            continue
 
         missing = [k for k in ["name_ar", "name_en", "profession"] if not row.get(k)]
         if missing:
