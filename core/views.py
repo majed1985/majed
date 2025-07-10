@@ -62,6 +62,10 @@ EMPLOYEE_COLUMN_MAP: dict[str, list[str]] = {
         "Sponsor",
         "Sponsor Name",
         "اسم الكفيل",
+        "اسبنسور",
+        "الاسبنسور",
+        "سبونسر",
+        "السبونسر",
     ],
     "evaluation":          ["evaluation", "Evaluation"],
     "result":              ["result", "Result"],
@@ -91,6 +95,10 @@ LEGACY_COLUMN_MAP = {
     "الجنسية": "nationality",
     "المهنة": "profession",
     "اسم الكفيل": "sponsor",
+    "اسبنسور": "sponsor",
+    "الاسبنسور": "sponsor",
+    "سبونسر": "sponsor",
+    "السبونسر": "sponsor",
 }
 
 INVISIBLE_CHARS = {"\u200f", "\ufeff"}
