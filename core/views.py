@@ -45,7 +45,18 @@ logger = logging.getLogger(__name__)
 # ------------------------------------------------------------------------------
 EMPLOYEE_COLUMN_MAP: dict[str, list[str]] = {
     "serial":              ["serial", "التسلسل"],
-    "employee_number":     ["employee_number", "الرقم الوظيفي"],
+    "employee_number": [
+        "employee_number",
+        "الرقم الوظيفي",
+        "Emp. ID",
+        "Emp ID",
+        "EMP ID",
+        "EMP NO",
+        "Emp No",
+        "Emp No.",
+        "EmpID",
+        "EMP_NO",
+    ],
     "name":                ["name", "الاسم عربي", "الاسم"],
     "name_en":             ["name_en", "الاسم انجليزي"],
     "passport_number":     ["passport_number", "رقم الجواز"],
@@ -78,7 +89,10 @@ EMPLOYEE_COLUMN_MAP: dict[str, list[str]] = {
 # ------------------------------------------------------------------------------
 LEGACY_COLUMN_MAP = {
     "EMP NO": "emp_id",
+    "Emp ID": "emp_id",
     "Emp. ID": "emp_id",
+    "Employee ID": "emp_id",
+    "Employees": "employees",
     "Name Arabic": "name_ar",
     "Name English": "name_en",
     "Passport No": "passport_no",
