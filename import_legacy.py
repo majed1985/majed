@@ -6,29 +6,43 @@ EXCEL_FILE = 'legacy.xlsx'
 
 # Mapping from Excel columns to LegacyRecruitmentRecord fields after cleaning
 COLUMN_FIELD_MAP = {
-    'Employees': 'employees',
-    'Emp. ID': 'emp_id',
-    'Evaliuation': 'evaluation',
-    'Result': 'result',
-    'Result Expectations': 'result_expectations',
-    'Name (Arabic)': 'name_ar',
-    'Name (English)': 'name_en',
-    'Passport No.': 'passport_no',
-    'Nationality': 'nationality',
-    'Profession': 'profession',
-    'Profession Group': 'profession_group',
-    'Sponsor': 'sponsor',
-    'Date': 'date',
-    'Month': 'month',
-    'Month Number': 'month_number',
-    'Sector': 'sector',
-    'Team Group': 'team_group',
-    'Project': 'project',
-    'Management': 'management',
-    'Project Manager': 'project_manager',
-    'Director of Management': 'director_of_management',
-    'Year': 'year',
+    "Employees": "employees",
+    "Emp. ID": "emp_id",
+    "Evaliuation": "evaluation",
+    "Result": "result",
+    "Result Expectations": "result_expectations",
+    "Name (Arabic)": "name_ar",
+    "Name (English)": "name_en",
+    "Passport No.": "passport_no",
+    "Nationality": "nationality",
+    "Profession": "profession",
+    "Profession Group": "profession_group",
+    "Sponsor": "sponsor",
+    "Date": "date",
+    "Month": "month",
+    "Month Number": "month_number",
+    "Sector": "sector",
+    "Team Group": "team_group",
+    "Project": "project",
+    "Management": "management",
+    "Project Manager": "project_manager",
+    "Director of Management": "director_of_management",
+    "Year": "year",
 }
+
+# Additional mappings for Arabic headers
+ARABIC_COLUMN_MAP = {
+    "الرقم الوظيفي": "emp_id",
+    "الاسم عربي": "name_ar",
+    "الاسم انجليزي": "name_en",
+    "رقم الجواز": "passport_no",
+    "الجنسية": "nationality",
+    "المهنة": "profession",
+    "اسم الكفيل": "sponsor",
+}
+
+# Unified map used for renaming
+COLUMN_MAP = {**COLUMN_FIELD_MAP, **ARABIC_COLUMN_MAP}
 
 # Characters sometimes hidden in Excel headers
 INVISIBLE_CHARS = {'\u200f', '\ufeff'}
@@ -49,7 +63,7 @@ def main():
     df.columns = [clean_name(c) for c in df.columns]
 
     # Rename columns to match model field names
-    df = df.rename(columns={k: v for k, v in COLUMN_FIELD_MAP.items() if k in df.columns})
+    df.rename(columns=COLUMN_MAP, inplace=True)
 
     # Clean textual result values but keep all rows
     if 'result' in df.columns:

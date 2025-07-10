@@ -176,6 +176,47 @@ class ImportReportRecordsTest(TestCase):
         self.client.post(url)
         self.assertEqual(LegacyRecruitmentRecord.objects.count(), 2)
 
+    def test_import_arabic_headers(self):
+        """Ensure Arabic column names are mapped correctly."""
+        report = RecruitmentReport.objects.create(
+            filename="arabic.xlsx",
+            report_date=datetime.date(2024, 3, 1),
+            file_size=1,
+            is_haramain=False,
+            columns=[
+                "الرقم الوظيفي",
+                "الاسم عربي",
+                "الاسم انجليزي",
+                "رقم الجواز",
+                "الجنسية",
+                "المهنة",
+                "اسم الكفيل",
+            ],
+            rows=[
+                {
+                    "الرقم الوظيفي": "200",
+                    "الاسم عربي": "سامي",
+                    "الاسم انجليزي": "Sami",
+                    "رقم الجواز": "P2",
+                    "الجنسية": "EG",
+                    "المهنة": "Engineer",
+                    "اسم الكفيل": "XYZ",
+                }
+            ],
+        )
+
+        self.client.force_login(self.user)
+        url = reverse("core:import_report_records", args=[report.pk])
+        self.client.post(url)
+
+        rec = LegacyRecruitmentRecord.objects.get(emp_id="200")
+        self.assertEqual(rec.name_ar, "سامي")
+        self.assertEqual(rec.name_en, "Sami")
+        self.assertEqual(rec.passport_no, "P2")
+        self.assertEqual(rec.nationality, "EG")
+        self.assertEqual(rec.profession, "Engineer")
+        self.assertEqual(rec.sponsor, "XYZ")
+
 
 class UploadEmployeesUpdateTest(TestCase):
     """التأكد من تحديث السجلات الموجودة بدلاً من تكرارها."""
