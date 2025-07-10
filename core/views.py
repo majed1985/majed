@@ -683,6 +683,12 @@ def update_database(request):
 
         data = RecruitmentEmployee.objects.values_list(*field_names)
         df = pd.DataFrame(list(data), columns=headers)
+
+        # Excel cannot handle timezone-aware datetimes. Convert any timezone-
+        # aware values to naive datetimes before exporting.
+        df = df.applymap(
+            lambda v: v.replace(tzinfo=None) if isinstance(v, datetime.datetime) and v.tzinfo else v
+        )
         resp = HttpResponse(content_type="application/vnd.ms-excel")
         filename = f"recruitment_placeholder_{datetime.date.today():%Y%m%d}.xlsx"
         resp["Content-Disposition"] = f'attachment; filename="{filename}"'
