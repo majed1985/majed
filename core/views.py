@@ -84,10 +84,13 @@ INVISIBLE_CHARS = {"\u200f", "\ufeff"}
 
 
 def _clean_header(name: str) -> str:
-    """Remove invisible characters and surrounding whitespace from a header."""
+    """Normalize Excel column headers by stripping extras."""
+    name = str(name)
     for ch in INVISIBLE_CHARS:
         name = name.replace(ch, "")
-    return name.strip()
+    name = name.strip()
+    name = re.sub(r"[:\u0589\u061b]+$", "", name).strip()
+    return name
 
 # ------------------------------------------------------------------------------
 # صفحات عامة

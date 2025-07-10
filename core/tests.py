@@ -376,3 +376,18 @@ class UploadEmployeesHeaderCleaningTest(TestCase):
 
         emp = RecruitmentEmployee.objects.get(employee_number="1")
         self.assertEqual(emp.sponsor_name, "Kafil")
+    def test_import_sponsor_with_colon_header(self):
+        url = reverse("core:upload_employees")
+
+        header_with_colon = "اسم الكفيل:"
+        file = self._excel_file(
+            [{"employee_number": "2", "name": "Omar", header_with_colon: "SponX"}]
+        )
+
+        self.client.post(
+            url,
+            {"report_date": "2024-01-01", "is_haramain": "false", "file": file},
+        )
+
+        emp = RecruitmentEmployee.objects.get(employee_number="2")
+        self.assertEqual(emp.sponsor_name, "SponX")
