@@ -376,7 +376,6 @@ class UploadEmployeesHeaderCleaningTest(TestCase):
 
         emp = RecruitmentEmployee.objects.get(employee_number="1")
         self.assertEqual(emp.sponsor_name, "Kafil")
-
     def test_import_sponsor_with_colon_header(self):
         url = reverse("core:upload_employees")
 
