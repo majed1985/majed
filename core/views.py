@@ -660,49 +660,58 @@ def reports_json(request):
 
 @require_http_methods(["GET", "POST"])
 def update_database(request):
-    """Update employee results then return an Excel file."""
+    """Export all legacy recruitment records to an Excel file."""
     if request.method == "POST":
-        for emp in RecruitmentEmployee.objects.all():
-            if emp.final_score is None:
-                ev = emp.evaluations.order_by("-evaluated_at").first()
-                if ev:
-                    total = (
-                        Decimal(ev.appearance_score)
-                        + Decimal(ev.experience_score)
-                        + Decimal(ev.skills_score)
-                    ) / Decimal(3)
-                    emp.final_score = total.quantize(Decimal("0.01"))
-                    emp.evaluation_date = ev.evaluated_at.date()
-            if emp.final_score is not None:
-                emp.result, emp.result_expectations = _grade_mapping(emp.final_score)
-            emp.save()
+        # 1) Fetch all records from the legacy table
+        qs = LegacyRecruitmentRecord.objects.all()
+        df = pd.DataFrame(list(qs.values()))
 
-        fields = [f for f in RecruitmentEmployee._meta.fields if not f.auto_created]
-        field_names = [f.name for f in fields]
-        headers = [getattr(f, "verbose_name", f.name) for f in fields]
+        # 2) Ensure all final columns exist
+        RECRUITMENT_COLUMNS = [
+            "Employees",
+            "Emp. ID",
+            "Evaliuation",
+            "Result",
+            "Result Expectations",
+            "Name (Arabic)",
+            "Name (English)",
+            "Passport No.",
+            "Nationality",
+            "Profession",
+            "Profession Group",
+            "Sponsor",
+            "Date",
+            "Month",
+            "Month Number",
+            "Sector",
+            "Team Group",
+            "Project",
+            "Management",
+            "Project Manager",
+            "Director of Management",
+            "Year",
+        ]
 
-        # Build dataframe from explicit list of field names to ensure all
-        # columns are present even if no value exists yet. The order matches the
-        # model definition so it is consistent with the master schema.
-        data = RecruitmentEmployee.objects.all().values(*field_names)
-        df = pd.DataFrame(list(data))
-
-        # Add any missing columns (shouldn't normally occur) and reindex to the
-        # expected order before assigning verbose headers.
-        for col in field_names:
-            if col not in df:
+        for col in RECRUITMENT_COLUMNS:
+            if col not in df.columns:
                 df[col] = ""
-        df = df.reindex(columns=field_names)
-        df.columns = headers
 
-        # Excel cannot handle timezone-aware datetimes. Convert any timezone-
-        # aware values to naive datetimes before exporting.
-        df = df.applymap(
-            lambda v: v.replace(tzinfo=None) if isinstance(v, datetime.datetime) and v.tzinfo else v
+        # 3) Reorder columns to match the expected schema
+        df = df[RECRUITMENT_COLUMNS]
+
+        # 4) Remove timezone from any datetime columns
+        for col in df.columns:
+            if pd.api.types.is_datetime64tz_dtype(df[col]):
+                df[col] = df[col].dt.tz_localize(None)
+
+        # 5) Prepare the Excel response
+        today = datetime.date.today().strftime("%Y%m%d")
+        filename = f"recruitment_placeholder_{today}.xlsx"
+        resp = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-        resp = HttpResponse(content_type="application/vnd.ms-excel")
-        filename = f"recruitment_placeholder_{datetime.date.today():%Y%m%d}.xlsx"
-        resp["Content-Disposition"] = f'attachment; filename="{filename}"'
+        resp["Content-Disposition"] = f"attachment; filename={filename}"
+
         df.to_excel(resp, index=False)
         return resp
 

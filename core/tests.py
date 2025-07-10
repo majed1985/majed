@@ -224,13 +224,13 @@ class UploadEmployeesUpdateTest(TestCase):
 
 
 class UpdateDatabaseExportTest(TestCase):
-    """Ensure exported placeholder includes all model fields."""
+    """Ensure exported file matches the legacy schema."""
 
     def test_export_all_columns(self):
-        emp = RecruitmentEmployee.objects.create(
-            serial=1,
-            employee_number="100",
-            name="Ali",
+        LegacyRecruitmentRecord.objects.create(
+            employees="1",
+            emp_id="100",
+            name_ar="Ali",
         )
 
         url = reverse("core:update_database")
@@ -240,8 +240,30 @@ class UpdateDatabaseExportTest(TestCase):
         buf = io.BytesIO(resp.content)
         df = pd.read_excel(buf)
 
-        fields = [f for f in RecruitmentEmployee._meta.fields if not f.auto_created]
-        expected = [getattr(f, "verbose_name", f.name) for f in fields]
+        expected = [
+            "Employees",
+            "Emp. ID",
+            "Evaliuation",
+            "Result",
+            "Result Expectations",
+            "Name (Arabic)",
+            "Name (English)",
+            "Passport No.",
+            "Nationality",
+            "Profession",
+            "Profession Group",
+            "Sponsor",
+            "Date",
+            "Month",
+            "Month Number",
+            "Sector",
+            "Team Group",
+            "Project",
+            "Management",
+            "Project Manager",
+            "Director of Management",
+            "Year",
+        ]
 
         self.assertEqual(list(df.columns), expected)
         self.assertEqual(len(df), 1)
@@ -258,8 +280,30 @@ class UpdateDatabaseEmptyExportTest(TestCase):
         buf = io.BytesIO(resp.content)
         df = pd.read_excel(buf)
 
-        fields = [f for f in RecruitmentEmployee._meta.fields if not f.auto_created]
-        expected = [getattr(f, "verbose_name", f.name) for f in fields]
+        expected = [
+            "Employees",
+            "Emp. ID",
+            "Evaliuation",
+            "Result",
+            "Result Expectations",
+            "Name (Arabic)",
+            "Name (English)",
+            "Passport No.",
+            "Nationality",
+            "Profession",
+            "Profession Group",
+            "Sponsor",
+            "Date",
+            "Month",
+            "Month Number",
+            "Sector",
+            "Team Group",
+            "Project",
+            "Management",
+            "Project Manager",
+            "Director of Management",
+            "Year",
+        ]
 
         self.assertEqual(list(df.columns), expected)
         self.assertEqual(len(df), 0)
