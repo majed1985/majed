@@ -748,7 +748,6 @@ def update_database(request):
         qs = LegacyRecruitmentRecord.objects.all()
         data = list(qs.values(*field_map.keys()))
         df = pd.DataFrame.from_records(data, columns=field_map.keys())
-        print(df[["emp_id", "sponsor"]].head(20))
 
         # Remove completely empty rows before exporting
         df = df.dropna(how="all")
