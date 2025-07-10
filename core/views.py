@@ -662,41 +662,44 @@ def reports_json(request):
 def update_database(request):
     """Export all legacy recruitment records to an Excel file."""
     if request.method == "POST":
-        # 1) Fetch all records from the legacy table
+        # 1) Fetch all records from the legacy table using explicit field names
+        field_map = {
+            "employees": "Employees",
+            "emp_id": "Emp. ID",
+            "evaluation": "Evaliuation",
+            "result": "Result",
+            "result_expectations": "Result Expectations",
+            "name_ar": "Name (Arabic)",
+            "name_en": "Name (English)",
+            "passport_no": "Passport No.",
+            "nationality": "Nationality",
+            "profession": "Profession",
+            "profession_group": "Profession Group",
+            "sponsor": "Sponsor",
+            "date": "Date",
+            "month": "Month",
+            "month_number": "Month Number",
+            "sector": "Sector",
+            "team_group": "Team Group",
+            "project": "Project",
+            "management": "Management",
+            "project_manager": "Project Manager",
+            "director_of_management": "Director of Management",
+            "year": "Year",
+        }
+
         qs = LegacyRecruitmentRecord.objects.all()
-        df = pd.DataFrame(list(qs.values()))
+        df = pd.DataFrame(list(qs.values(*field_map.keys())))
 
-        # 2) Ensure all final columns exist
-        RECRUITMENT_COLUMNS = [
-            "Employees",
-            "Emp. ID",
-            "Evaliuation",
-            "Result",
-            "Result Expectations",
-            "Name (Arabic)",
-            "Name (English)",
-            "Passport No.",
-            "Nationality",
-            "Profession",
-            "Profession Group",
-            "Sponsor",
-            "Date",
-            "Month",
-            "Month Number",
-            "Sector",
-            "Team Group",
-            "Project",
-            "Management",
-            "Project Manager",
-            "Director of Management",
-            "Year",
-        ]
+        # 2) Rename columns to match the expected export headers
+        df.rename(columns=field_map, inplace=True)
 
+        # 3) Ensure all final columns exist and are ordered correctly
+        RECRUITMENT_COLUMNS = list(field_map.values())
         for col in RECRUITMENT_COLUMNS:
             if col not in df.columns:
                 df[col] = ""
 
-        # 3) Reorder columns to match the expected schema
         df = df[RECRUITMENT_COLUMNS]
 
         # 4) Remove timezone from any datetime columns
