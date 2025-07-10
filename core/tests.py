@@ -245,3 +245,21 @@ class UpdateDatabaseExportTest(TestCase):
 
         self.assertEqual(list(df.columns), expected)
         self.assertEqual(len(df), 1)
+
+
+class UpdateDatabaseEmptyExportTest(TestCase):
+    """Export should include columns even when no records exist."""
+
+    def test_export_no_records(self):
+        url = reverse("core:update_database")
+        resp = self.client.post(url)
+        self.assertEqual(resp.status_code, 200)
+
+        buf = io.BytesIO(resp.content)
+        df = pd.read_excel(buf)
+
+        fields = [f for f in RecruitmentEmployee._meta.fields if not f.auto_created]
+        expected = [getattr(f, "verbose_name", f.name) for f in fields]
+
+        self.assertEqual(list(df.columns), expected)
+        self.assertEqual(len(df), 0)
