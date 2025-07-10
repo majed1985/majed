@@ -22,6 +22,10 @@ COLUMN_FIELD_MAP = {
     "Sponsor Name": "sponsor",
     "Spensor": "sponsor",
     "Spensor Name": "sponsor",
+    "اسبنسور": "sponsor",
+    "الاسبنسور": "sponsor",
+    "سبونسر": "sponsor",
+    "السبونسر": "sponsor",
     "Date": "date",
     "Month": "month",
     "Month Number": "month_number",
@@ -43,6 +47,10 @@ ARABIC_COLUMN_MAP = {
     "الجنسية": "nationality",
     "المهنة": "profession",
     "اسم الكفيل": "sponsor",
+    "اسبنسور": "sponsor",
+    "الاسبنسور": "sponsor",
+    "سبونسر": "sponsor",
+    "السبونسر": "sponsor",
 }
 
 # Unified map used for renaming

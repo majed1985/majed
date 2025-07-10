@@ -407,3 +407,19 @@ class UploadEmployeesHeaderCleaningTest(TestCase):
 
         emp = RecruitmentEmployee.objects.get(employee_number="3")
         self.assertEqual(emp.sponsor_name, "AlKafil")
+
+    def test_import_sponsor_with_misspelled_arabic_header(self):
+        url = reverse("core:upload_employees")
+
+        misspelled_header = "اسبنسور"
+        file = self._excel_file(
+            [{"employee_number": "4", "name": "Sara", misspelled_header: "NewKafil"}]
+        )
+
+        self.client.post(
+            url,
+            {"report_date": "2024-01-01", "is_haramain": "false", "file": file},
+        )
+
+        emp = RecruitmentEmployee.objects.get(employee_number="4")
+        self.assertEqual(emp.sponsor_name, "NewKafil")
