@@ -166,14 +166,14 @@ class ImportReportRecordsTest(TestCase):
             ],
         )
 
-    def test_import_creates_record_once(self):
+    def test_import_allows_duplicates(self):
         self.client.force_login(self.user)
         url = reverse("core:import_report_records", args=[self.report.pk])
         self.client.post(url)
         self.assertEqual(LegacyRecruitmentRecord.objects.count(), 1)
-        # Second call should not duplicate
+        # Second call should create a duplicate record
         self.client.post(url)
-        self.assertEqual(LegacyRecruitmentRecord.objects.count(), 1)
+        self.assertEqual(LegacyRecruitmentRecord.objects.count(), 2)
 
 
 class UploadEmployeesUpdateTest(TestCase):

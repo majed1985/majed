@@ -404,37 +404,24 @@ def edit_report(request, pk):
 def import_report_records(request, pk):
     """Import selected report rows into LegacyRecruitmentRecord."""
     report = RecruitmentReport.objects.get(pk=pk)
-    required = {
-        "emp_id",
-        "name_ar",
-        "name_en",
-        "passport_no",
-        "nationality",
-        "profession",
-        "sponsor",
-    }
-
     added = 0
-    skipped = 0
     for raw in report.rows:
-        row = { _clean_header(k): v for k, v in raw.items() }
-        data = { field: row.get(col) for col, field in LEGACY_COLUMN_MAP.items() if col in row }
-        if not all(data.get(f) for f in required):
-            skipped += 1
-            logger.warning("Skipping row with missing data: %s", row)
-            continue
-        emp_id = str(data["emp_id"]).strip()
-        if LegacyRecruitmentRecord.objects.filter(emp_id=emp_id).exists():
-            skipped += 1
-            continue
+        row = {_clean_header(k): v for k, v in raw.items()}
+        data = {
+            field: row.get(col)
+            for col, field in LEGACY_COLUMN_MAP.items()
+            if col in row
+        }
+        emp_id = str(data.get("emp_id", "")).strip()
         LegacyRecruitmentRecord.objects.create(
+            employees=emp_id,
             emp_id=emp_id,
-            name_ar=str(data["name_ar"]).strip(),
-            name_en=str(data["name_en"]).strip(),
-            passport_no=str(data["passport_no"]).strip(),
-            nationality=str(data["nationality"]).strip(),
-            profession=str(data["profession"]).strip(),
-            sponsor=str(data["sponsor"]).strip(),
+            name_ar=(str(data.get("name_ar", "")).strip() or None),
+            name_en=(str(data.get("name_en", "")).strip() or None),
+            passport_no=(str(data.get("passport_no", "")).strip() or None),
+            nationality=(str(data.get("nationality", "")).strip() or None),
+            profession=(str(data.get("profession", "")).strip() or None),
+            sponsor=(str(data.get("sponsor", "")).strip() or None),
         )
         added += 1
 
@@ -442,8 +429,6 @@ def import_report_records(request, pk):
         messages.success(request, f"تم إضافة {added} سجل بنجاح")
     else:
         messages.info(request, "لا توجد سجلات جديدة لإضافتها")
-    if skipped:
-        messages.warning(request, f"تم تجاهل {skipped} سجل مكرر أو ناقص البيانات")
     return redirect("core:upload_employees")
 
 # ------------------------------------------------------------------------------
