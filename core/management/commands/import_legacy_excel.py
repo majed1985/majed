@@ -67,6 +67,7 @@ def clean_name(name: str) -> str:
         name = name.replace(ch, '')
     name = name.strip()
     name = re.sub(r'[:\u0589\u061b]+$', '', name).strip()
+    name = re.sub(r'\.\d+$', '', name)
     return name
 
 
