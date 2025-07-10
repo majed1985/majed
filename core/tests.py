@@ -138,6 +138,7 @@ class ImportReportRecordsTest(TestCase):
 
     def setUp(self):
         from django.contrib.auth.models import User
+
         self.user = User.objects.create_user(username="u", password="p")
         self.report = RecruitmentReport.objects.create(
             filename="safety.xlsx",
@@ -183,14 +184,23 @@ class UploadEmployeesUpdateTest(TestCase):
         buf = io.BytesIO()
         pd.DataFrame(rows).to_excel(buf, index=False)
         buf.seek(0)
-        return SimpleUploadedFile("rep.xlsx", buf.getvalue(), content_type="application/vnd.ms-excel")
+        return SimpleUploadedFile(
+            "rep.xlsx", buf.getvalue(), content_type="application/vnd.ms-excel"
+        )
 
     def test_update_existing_employee(self):
         url = reverse("core:upload_employees")
 
-        file1 = self._excel_file([
-            {"serial": 1, "employee_number": "10", "name": "Ali", "Evaluation": "The assessment cannot be conducted"},
-        ])
+        file1 = self._excel_file(
+            [
+                {
+                    "serial": 1,
+                    "employee_number": "10",
+                    "name": "Ali",
+                    "Evaluation": "The assessment cannot be conducted",
+                },
+            ]
+        )
         self.client.post(
             url,
             {"report_date": "2024-01-01", "is_haramain": "false", "file": file1},
@@ -199,9 +209,11 @@ class UploadEmployeesUpdateTest(TestCase):
         emp = RecruitmentEmployee.objects.get(employee_number="10")
         self.assertEqual(emp.name, "Ali")
 
-        file2 = self._excel_file([
-            {"serial": 1, "employee_number": "10", "name": "Moh"},
-        ])
+        file2 = self._excel_file(
+            [
+                {"serial": 1, "employee_number": "10", "name": "Moh"},
+            ]
+        )
         self.client.post(
             url,
             {"report_date": "2024-01-02", "is_haramain": "false", "file": file2},
@@ -210,3 +222,26 @@ class UploadEmployeesUpdateTest(TestCase):
         emp.refresh_from_db()
         self.assertEqual(emp.name, "Moh")
 
+
+class UpdateDatabaseExportTest(TestCase):
+    """Ensure exported placeholder includes all model fields."""
+
+    def test_export_all_columns(self):
+        emp = RecruitmentEmployee.objects.create(
+            serial=1,
+            employee_number="100",
+            name="Ali",
+        )
+
+        url = reverse("core:update_database")
+        resp = self.client.post(url)
+        self.assertEqual(resp.status_code, 200)
+
+        buf = io.BytesIO(resp.content)
+        df = pd.read_excel(buf)
+
+        fields = [f for f in RecruitmentEmployee._meta.fields if not f.auto_created]
+        expected = [getattr(f, "verbose_name", f.name) for f in fields]
+
+        self.assertEqual(list(df.columns), expected)
+        self.assertEqual(len(df), 1)
