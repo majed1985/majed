@@ -681,8 +681,19 @@ def update_database(request):
         field_names = [f.name for f in fields]
         headers = [getattr(f, "verbose_name", f.name) for f in fields]
 
-        data = RecruitmentEmployee.objects.values_list(*field_names)
-        df = pd.DataFrame(list(data), columns=headers)
+        # Build dataframe from explicit list of field names to ensure all
+        # columns are present even if no value exists yet. The order matches the
+        # model definition so it is consistent with the master schema.
+        data = RecruitmentEmployee.objects.all().values(*field_names)
+        df = pd.DataFrame(list(data))
+
+        # Add any missing columns (shouldn't normally occur) and reindex to the
+        # expected order before assigning verbose headers.
+        for col in field_names:
+            if col not in df:
+                df[col] = ""
+        df = df.reindex(columns=field_names)
+        df.columns = headers
 
         # Excel cannot handle timezone-aware datetimes. Convert any timezone-
         # aware values to naive datetimes before exporting.
