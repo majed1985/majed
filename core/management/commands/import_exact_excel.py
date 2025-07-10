@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from core.models import LegacyRecruitmentRecord
+from django.db import models
 import pandas as pd
 import re
 
@@ -73,6 +74,14 @@ def clean_name(name: str) -> str:
     return name
 
 
+def truncate_record(rec: LegacyRecruitmentRecord) -> None:
+    for field in rec._meta.get_fields():
+        if isinstance(field, models.CharField):
+            val = getattr(rec, field.name)
+            if isinstance(val, str) and field.max_length and len(val) > field.max_length:
+                setattr(rec, field.name, val[: field.max_length])
+
+
 class Command(BaseCommand):
     help = "Import LegacyRecruitmentRecord rows from an Excel file when column names match model fields."
 
@@ -119,7 +128,9 @@ class Command(BaseCommand):
 
             if all(value is None for value in cleaned.values()):
                 continue
-            records.append(LegacyRecruitmentRecord(**cleaned))
+            rec = LegacyRecruitmentRecord(**cleaned)
+            truncate_record(rec)
+            records.append(rec)
 
         if records:
             LegacyRecruitmentRecord.objects.bulk_create(records)
