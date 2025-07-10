@@ -92,15 +92,21 @@ LEGACY_COLUMN_MAP = {
     "Emp ID": "emp_id",
     "Emp. ID": "emp_id",
     "Employee ID": "emp_id",
-    "Employees": "employees",
+    "Employees": "emp_id",
+    "emp.id": "emp_id",
     "Name Arabic": "name_ar",
+    "name.(arabic)": "name_ar",
     "Name English": "name_en",
+    "name.(english)": "name_en",
     "Passport No": "passport_no",
+    "passport.no": "passport_no",
     "Nationality": "nationality",
     "Actual Profession": "profession",
+    "profession": "profession",
     "Sponsor Name": "sponsor",
     "Spensor": "sponsor",
     "Spensor Name": "sponsor",
+    "sponsor": "sponsor",
     # Arabic headers
     "الرقم الوظيفي": "emp_id",
     "الاسم عربي": "name_ar",
@@ -469,6 +475,7 @@ def import_report_records(request, pk):
     df = pd.DataFrame(report.rows)
     df.columns = [_clean_header(c) for c in df.columns]
     df.rename(columns=LEGACY_COLUMN_MAP, inplace=True)
+    print("\U0001fa84 columns:", df.columns.tolist())
 
     sponsor_indices = [i for i, col in enumerate(df.columns) if col == "sponsor"]
 
@@ -484,14 +491,22 @@ def import_report_records(request, pk):
                     sponsor_value = val
                     break
 
+        name_ar = (row.get("name_ar") or row.get("name") or "").strip() or None
+        name_en = (row.get("name_en") or "").strip() or None
+        profession = (row.get("profession") or row.get("official_job") or "").strip() or None
+
+        missing = [k for k in ["name_ar", "name_en", "profession"] if not row.get(k)]
+        if missing:
+            print("\u26a0\ufe0f MISSING:", missing, "for", emp_id)
+
         LegacyRecruitmentRecord.objects.create(
             employees=emp_id,
             emp_id=emp_id,
-            name_ar=(str(row.get("name_ar", "")).strip() or None),
-            name_en=(str(row.get("name_en", "")).strip() or None),
+            name_ar=name_ar,
+            name_en=name_en,
             passport_no=(str(row.get("passport_no", "")).strip() or None),
             nationality=(str(row.get("nationality", "")).strip() or None),
-            profession=(str(row.get("profession", "")).strip() or None),
+            profession=profession,
             sponsor=(str(sponsor_value).strip() if sponsor_value not in (None, "") else None),
         )
         added += 1
