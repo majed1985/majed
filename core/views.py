@@ -271,7 +271,15 @@ def other_services(request):
 
 def _extract_employee_data(row: dict) -> dict:
     """Return cleaned values from a raw Excel row."""
-    cleaned = {_clean_header(k): v for k, v in row.items()}
+    cleaned: dict[str, object] = {}
+    for k, v in row.items():
+        name = _clean_header(k)
+        if name in cleaned:
+            current = cleaned[name]
+            if (current in ("", None)) and (v not in ("", None)):
+                cleaned[name] = v
+        else:
+            cleaned[name] = v
     data: dict[str, object] = {}
     for field, aliases in EMPLOYEE_COLUMN_MAP.items():
         for a in aliases:
