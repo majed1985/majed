@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 from core.models import LegacyRecruitmentRecord
 import pandas as pd
+import re
 
 # Mapping from cleaned Excel columns to model field names
 COLUMN_FIELD_MAP = {
@@ -49,10 +50,13 @@ INVISIBLE_CHARS = {
 
 
 def clean_name(name: str) -> str:
-    """Remove invisible characters and strip whitespace."""
+    """Normalize Excel column headers by stripping extras."""
+    name = str(name)
     for ch in INVISIBLE_CHARS:
         name = name.replace(ch, '')
-    return name.strip()
+    name = name.strip()
+    name = re.sub(r'[:\u0589\u061b]+$', '', name).strip()
+    return name
 
 
 class Command(BaseCommand):

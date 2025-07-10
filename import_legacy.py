@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 from core.models import LegacyRecruitmentRecord
 
 # Path to the Excel file to import. Adjust this before running.
@@ -49,10 +50,13 @@ INVISIBLE_CHARS = {'\u200f', '\ufeff'}
 
 
 def clean_name(name: str) -> str:
-    """Strip whitespace and remove invisible characters."""
+    """Strip whitespace, punctuation, and invisible characters."""
+    name = str(name)
     for ch in INVISIBLE_CHARS:
         name = name.replace(ch, '')
-    return name.strip()
+    name = name.strip()
+    name = re.sub(r'[:\u0589\u061b]+$', '', name).strip()
+    return name
 
 
 def main():

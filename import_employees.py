@@ -5,6 +5,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import pandas as pd
+import re
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -55,10 +56,13 @@ from core.models import RecruitmentEmployee
 # --------------------------------------------------------------------------------------
 
 def clean_header(name: str) -> str:
-    """Strip whitespace and remove hidden characters from column headers."""
+    """Strip whitespace, punctuation, and hidden characters from headers."""
+    name = str(name)
     for ch in ('\u200f', '\ufeff'):
         name = name.replace(ch, '')
-    return str(name).strip()
+    name = name.strip()
+    name = re.sub(r'[:\u0589\u061b]+$', '', name).strip()
+    return name
 
 
 def read_excel(path: str) -> pd.DataFrame:

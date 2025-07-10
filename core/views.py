@@ -84,10 +84,13 @@ INVISIBLE_CHARS = {"\u200f", "\ufeff"}
 
 
 def _clean_header(name: str) -> str:
-    """Remove invisible characters and surrounding whitespace from a header."""
+    """Normalize Excel column headers by stripping extras."""
+    name = str(name)
     for ch in INVISIBLE_CHARS:
         name = name.replace(ch, "")
-    return name.strip()
+    name = name.strip()
+    name = re.sub(r"[:\u0589\u061b]+$", "", name).strip()
+    return name
 
 # ------------------------------------------------------------------------------
 # صفحات عامة
@@ -245,11 +248,13 @@ def other_services(request):
 # ------------------------------------------------------------------------------
 
 def _extract_employee_data(row: dict) -> dict:
+    """Return cleaned values from a raw Excel row."""
+    cleaned = {_clean_header(k): v for k, v in row.items()}
     data: dict[str, object] = {}
     for field, aliases in EMPLOYEE_COLUMN_MAP.items():
         for a in aliases:
-            if a in row and row[a] not in ("", None):
-                val = row[a]
+            if a in cleaned and cleaned[a] not in ("", None):
+                val = cleaned[a]
                 if field == "start_date":
                     try:
                         val = pd.to_datetime(val).date()
