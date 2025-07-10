@@ -11,8 +11,19 @@ INVISIBLE_CHARS = {
     "\ufeff",  # BOM
 }
 
-# Minimal column mapping for known sponsor aliases
-COLUMN_MAP = {
+# Mapping from cleaned Excel columns to model field names
+COLUMN_FIELD_MAP = {
+    "Employees": "employees",
+    "Emp. ID": "emp_id",
+    "Evaliuation": "evaluation",
+    "Result": "result",
+    "Result Expectations": "result_expectations",
+    "Name (Arabic)": "name_ar",
+    "Name (English)": "name_en",
+    "Passport No.": "passport_no",
+    "Nationality": "nationality",
+    "Profession": "profession",
+    "Profession Group": "profession_group",
     "Sponsor": "sponsor",
     "Sponsor Name": "sponsor",
     "Spensor": "sponsor",
@@ -21,7 +32,35 @@ COLUMN_MAP = {
     "الاسبنسور": "sponsor",
     "سبونسر": "sponsor",
     "السبونسر": "sponsor",
+    "Date": "date",
+    "Month": "month",
+    "Month Number": "month_number",
+    "Sector": "sector",
+    "Team Group": "team_group",
+    "Project": "project",
+    "Management": "management",
+    "Project Manager": "project_manager",
+    "Director of Management": "director_of_management",
+    "Year": "year",
 }
+
+# Additional mappings for Arabic column headers
+ARABIC_COLUMN_MAP = {
+    "الرقم الوظيفي": "emp_id",
+    "الاسم عربي": "name_ar",
+    "الاسم انجليزي": "name_en",
+    "رقم الجواز": "passport_no",
+    "الجنسية": "nationality",
+    "المهنة": "profession",
+    "اسم الكفيل": "sponsor",
+    "اسبنسور": "sponsor",
+    "الاسبنسور": "sponsor",
+    "سبونسر": "sponsor",
+    "السبونسر": "sponsor",
+}
+
+# Combine both maps for renaming
+COLUMN_MAP = {**COLUMN_FIELD_MAP, **ARABIC_COLUMN_MAP}
 
 
 def clean_name(name: str) -> str:
@@ -46,19 +85,44 @@ class Command(BaseCommand):
         df.columns = [clean_name(c) for c in df.columns]
         df.rename(columns=COLUMN_MAP, inplace=True)
 
+        sponsor_indices = [i for i, col in enumerate(df.columns) if col == "sponsor"]
+
+        if "result" in df.columns:
+            df["result"] = df["result"].fillna("").apply(clean_name)
+            df.loc[df["result"] == "", "result"] = None
+        if "evaluation" in df.columns:
+            df["evaluation"] = pd.to_numeric(df["evaluation"], errors="coerce")
+
         model_fields = {
             f.name
             for f in LegacyRecruitmentRecord._meta.get_fields()
-            if f.concrete and not f.auto_created and f.name != "id"
+            if f.concrete and not f.auto_created
         }
 
-        count = 0
+        records = []
         for _, row in df.iterrows():
-            if row.isna().all():
-                continue
-            data = row.to_dict()
-            cleaned = {k: v for k, v in data.items() if k in model_fields}
-            LegacyRecruitmentRecord.objects.create(**cleaned)
-            count += 1
+            cleaned = {}
+            for f in model_fields:
+                if f == "sponsor":
+                    continue
+                val = row.get(f)
+                cleaned[f] = None if pd.isna(val) else val
 
-        self.stdout.write(self.style.SUCCESS(f"Imported {count} records"))
+            sponsor_value = None
+            for idx in sponsor_indices:
+                if idx < len(row):
+                    val = row.iloc[idx]
+                    if val not in ("", None) and not (isinstance(val, float) and pd.isna(val)):
+                        sponsor_value = val
+                        break
+            cleaned["sponsor"] = sponsor_value
+
+            if all(value is None for value in cleaned.values()):
+                continue
+            records.append(LegacyRecruitmentRecord(**cleaned))
+
+        if records:
+            LegacyRecruitmentRecord.objects.bulk_create(records)
+            self.stdout.write(self.style.SUCCESS(f"Imported {len(records)} records"))
+        else:
+            self.stdout.write("No records imported")
