@@ -306,3 +306,12 @@ class LegacyRecruitmentRecord(models.Model):
     def __str__(self) -> str:
         return f"{self.emp_id} - {self.name_ar or self.name_en}".strip()
 
+    def save(self, *args, **kwargs):
+        """Truncate overly long CharField values before saving."""
+        for field in self._meta.get_fields():
+            if isinstance(field, models.CharField) and not field.auto_created:
+                val = getattr(self, field.name)
+                if isinstance(val, str) and field.max_length and len(val) > field.max_length:
+                    setattr(self, field.name, val[: field.max_length])
+        super().save(*args, **kwargs)
+

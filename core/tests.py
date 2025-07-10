@@ -217,6 +217,26 @@ class ImportReportRecordsTest(TestCase):
         self.assertEqual(rec.profession, "Engineer")
         self.assertEqual(rec.sponsor, "XYZ")
 
+    def test_import_truncates_long_values(self):
+        long_id = "E" * 60
+        long_nat = "N" * 60
+        report = RecruitmentReport.objects.create(
+            filename="long.xlsx",
+            report_date=datetime.date(2024, 4, 1),
+            file_size=1,
+            is_haramain=False,
+            columns=["EMP NO", "Nationality"],
+            rows=[{"EMP NO": long_id, "Nationality": long_nat}],
+        )
+
+        self.client.force_login(self.user)
+        url = reverse("core:import_report_records", args=[report.pk])
+        self.client.post(url)
+
+        rec = LegacyRecruitmentRecord.objects.first()
+        self.assertEqual(rec.emp_id, long_id[:50])
+        self.assertEqual(rec.nationality, long_nat[:50])
+
 
 class UploadEmployeesUpdateTest(TestCase):
     """التأكد من تحديث السجلات الموجودة بدلاً من تكرارها."""
