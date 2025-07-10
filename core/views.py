@@ -456,9 +456,20 @@ def import_report_records(request, pk):
     df.columns = [_clean_header(c) for c in df.columns]
     df.rename(columns=LEGACY_COLUMN_MAP, inplace=True)
 
+    sponsor_indices = [i for i, col in enumerate(df.columns) if col == "sponsor"]
+
     added = 0
     for _, row in df.iterrows():
         emp_id = str(row.get("emp_id", "")).strip()
+
+        sponsor_value = None
+        for idx in sponsor_indices:
+            if idx < len(row):
+                val = row.iloc[idx]
+                if val not in ("", None) and not (isinstance(val, float) and pd.isna(val)):
+                    sponsor_value = val
+                    break
+
         LegacyRecruitmentRecord.objects.create(
             employees=emp_id,
             emp_id=emp_id,
@@ -467,7 +478,7 @@ def import_report_records(request, pk):
             passport_no=(str(row.get("passport_no", "")).strip() or None),
             nationality=(str(row.get("nationality", "")).strip() or None),
             profession=(str(row.get("profession", "")).strip() or None),
-            sponsor=(str(row.get("sponsor", "")).strip() or None),
+            sponsor=(str(sponsor_value).strip() if sponsor_value not in (None, "") else None),
         )
         added += 1
 

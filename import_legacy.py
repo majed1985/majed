@@ -81,6 +81,8 @@ def main():
     # Rename columns to match model field names
     df.rename(columns=COLUMN_MAP, inplace=True)
 
+    sponsor_indices = [i for i, col in enumerate(df.columns) if col == "sponsor"]
+
     # Clean textual result values but keep all rows
     if 'result' in df.columns:
         df['result'] = df['result'].fillna('').apply(clean_name)
@@ -97,11 +99,23 @@ def main():
     }
 
     records = []
-    for row in df.to_dict(orient='records'):
-        cleaned = {
-            f: (None if pd.isna(row.get(f)) else row.get(f))
-            for f in model_fields
-        }
+    for _, row in df.iterrows():
+        cleaned = {}
+        for f in model_fields:
+            if f == "sponsor":
+                continue
+            val = row.get(f)
+            cleaned[f] = None if pd.isna(val) else val
+
+        sponsor_value = None
+        for idx in sponsor_indices:
+            if idx < len(row):
+                val = row.iloc[idx]
+                if val not in ("", None) and not (isinstance(val, float) and pd.isna(val)):
+                    sponsor_value = val
+                    break
+        cleaned["sponsor"] = sponsor_value
+
         if all(value is None for value in cleaned.values()):
             continue
         records.append(LegacyRecruitmentRecord(**cleaned))
