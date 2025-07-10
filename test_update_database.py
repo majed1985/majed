@@ -4,12 +4,14 @@ import datetime
 from django.urls import reverse
 from django.test import TestCase
 from django.utils import timezone
-from core.models import RecruitmentEmployee
+from core.models import LegacyRecruitmentRecord
 
 class UpdateDatabaseTimezoneTest(TestCase):
     def test_export_removes_timezone(self):
-        RecruitmentEmployee.objects.create(
-            serial=1, employee_number="10", name="Ali"
+        LegacyRecruitmentRecord.objects.create(
+            employees="1",
+            emp_id="10",
+            date=timezone.now(),
         )
 
         url = reverse("core:update_database")
@@ -19,6 +21,6 @@ class UpdateDatabaseTimezoneTest(TestCase):
         buf = io.BytesIO(resp.content)
         df = pd.read_excel(buf)
 
-        self.assertIn("created at", df.columns)
-        value = df.loc[0, "created at"]
+        self.assertIn("Date", df.columns)
+        value = df.loc[0, "Date"]
         self.assertFalse(hasattr(value, 'tzinfo') and value.tzinfo)
