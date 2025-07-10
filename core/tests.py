@@ -348,3 +348,31 @@ class UpdateDatabaseEmptyExportTest(TestCase):
 
         self.assertEqual(list(df.columns), expected)
         self.assertEqual(len(df), 0)
+
+
+class UploadEmployeesHeaderCleaningTest(TestCase):
+    """Ensure hidden characters in headers don't prevent data import."""
+
+    def _excel_file(self, rows):
+        buf = io.BytesIO()
+        pd.DataFrame(rows).to_excel(buf, index=False)
+        buf.seek(0)
+        return SimpleUploadedFile(
+            "rep.xlsx", buf.getvalue(), content_type="application/vnd.ms-excel"
+        )
+
+    def test_import_sponsor_with_invisible_header(self):
+        url = reverse("core:upload_employees")
+
+        hidden_header = "\u200fاسم الكفيل"
+        file = self._excel_file(
+            [{"employee_number": "1", "name": "Ali", hidden_header: "Kafil"}]
+        )
+
+        self.client.post(
+            url,
+            {"report_date": "2024-01-01", "is_haramain": "false", "file": file},
+        )
+
+        emp = RecruitmentEmployee.objects.get(employee_number="1")
+        self.assertEqual(emp.sponsor_name, "Kafil")
