@@ -677,18 +677,12 @@ def update_database(request):
                 emp.result, emp.result_expectations = _grade_mapping(emp.final_score)
             emp.save()
 
-        data = RecruitmentEmployee.objects.values(
-            "serial",
-            "employee_number",
-            "name",
-            "final_score",
-            "result",
-            "result_expectations",
-            "evaluation_date",
-            "start_date",
-            "is_haramain",
-        )
-        df = pd.DataFrame(list(data))
+        fields = [f for f in RecruitmentEmployee._meta.fields if not f.auto_created]
+        field_names = [f.name for f in fields]
+        headers = [getattr(f, "verbose_name", f.name) for f in fields]
+
+        data = RecruitmentEmployee.objects.values_list(*field_names)
+        df = pd.DataFrame(list(data), columns=headers)
         resp = HttpResponse(content_type="application/vnd.ms-excel")
         filename = f"recruitment_placeholder_{datetime.date.today():%Y%m%d}.xlsx"
         resp["Content-Disposition"] = f'attachment; filename="{filename}"'
