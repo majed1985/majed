@@ -376,6 +376,7 @@ class UploadEmployeesHeaderCleaningTest(TestCase):
 
         emp = RecruitmentEmployee.objects.get(employee_number="1")
         self.assertEqual(emp.sponsor_name, "Kafil")
+
     def test_import_sponsor_with_colon_header(self):
         url = reverse("core:upload_employees")
 
@@ -439,3 +440,32 @@ class UploadEmployeesHeaderCleaningTest(TestCase):
 
         emp = RecruitmentEmployee.objects.get(employee_number="5")
         self.assertEqual(emp.sponsor_name, "Kaf")
+
+
+class ImportExactExcelCommandTest(TestCase):
+    """Ensure direct import command cleans headers properly."""
+
+    def test_clean_headers_import(self):
+        from django.core.management import call_command
+        import tempfile
+
+        buf = io.BytesIO()
+        pd.DataFrame(
+            [
+                {
+                    "\u200fEmployees": "X",
+                    "Emp. ID": "10",
+                    "Nationality": "SA",
+                }
+            ]
+        ).to_excel(buf, index=False)
+        buf.seek(0)
+
+        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp:
+            tmp.write(buf.getvalue())
+            tmp.flush()
+            call_command("import_exact_excel", tmp.name)
+
+        rec = LegacyRecruitmentRecord.objects.get(emp_id="10")
+        self.assertEqual(rec.employees, "X")
+        self.assertEqual(rec.nationality, "SA")
