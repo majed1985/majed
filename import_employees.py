@@ -116,10 +116,18 @@ def fill_missing_columns(df: pd.DataFrame) -> pd.DataFrame:
 def import_rows(df: pd.DataFrame) -> int:
     count = 0
     for idx, row in df.iterrows():
+        cleaned: dict[str, object] = {}
+        for col, val in row.items():
+            if col in cleaned:
+                if (cleaned[col] in ("", None)) and (val not in ("", None)):
+                    cleaned[col] = val
+            else:
+                cleaned[col] = val
+
         data = {}
         for col, model_field in FIELD_MAP.items():
-            if col in row:
-                data[model_field] = row[col]
+            if col in cleaned and cleaned[col] not in ("", None):
+                data[model_field] = cleaned[col]
 
         # handle decimal conversion
         if data.get('evaluation') not in (None, ''):
