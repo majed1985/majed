@@ -384,6 +384,10 @@ def delete_report(request, pk):
 def export_report_excel(request, pk):
     rep = RecruitmentReport.objects.get(pk=pk)
     df  = pd.DataFrame(rep.rows, columns=rep.columns)
+
+    # Remove completely empty rows before exporting
+    df = df.dropna(how="all")
+    df = df[~(df == "").all(axis=1)]
     resp = HttpResponse(content_type="application/vnd.ms-excel")
     resp["Content-Disposition"] = f'attachment; filename="{rep.filename}"'
     df.to_excel(resp, index=False)
