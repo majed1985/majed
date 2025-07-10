@@ -67,3 +67,17 @@ command cleans the column names and bulk creates
 `LegacyRecruitmentRecord` entries. Numeric evaluation columns are converted
 using `pandas.to_numeric`, so invalid values become `NULL`, while textual
 results such as "The assessment cannot be conducted" are stored unchanged.
+
+When exporting legacy records back to Excel, completely empty rows are
+removed so the data begins immediately below the header line.
+
+## Cleaning Legacy Records
+
+Two maintenance commands are available to tidy the legacy data:
+
+```bash
+python manage.py cleanup_legacy_records
+python manage.py clear_sponsor_column
+```
+
+The first command removes entries that contain no real values, treating whitespace as empty. The second command clears the `sponsor` field for the first 33,822 records to remove incorrect values imported in earlier spreadsheets.
