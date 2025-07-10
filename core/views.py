@@ -691,6 +691,10 @@ def update_database(request):
         qs = LegacyRecruitmentRecord.objects.all()
         df = pd.DataFrame(list(qs.values(*field_map.keys())))
 
+        # Remove completely empty rows before exporting
+        df = df.dropna(how="all")
+        df = df[~(df == "").all(axis=1)]
+
         # 2) Rename columns to match the expected export headers
         df.rename(columns=field_map, inplace=True)
 
