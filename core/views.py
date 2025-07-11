@@ -480,9 +480,15 @@ def import_report_records(request, pk):
 
     sponsor_indices = [i for i, col in enumerate(df.columns) if col == "sponsor"]
 
+    existing_ids = set(
+        LegacyRecruitmentRecord.objects.values_list("emp_id", flat=True)
+    )
     added = 0
     for _, row in df.iterrows():
         emp_id = str(row.get("emp_id", "")).strip()
+        if not emp_id or emp_id in existing_ids:
+            continue
+        existing_ids.add(emp_id)
 
         sponsor_value = None
         for idx in sponsor_indices:

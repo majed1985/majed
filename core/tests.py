@@ -167,14 +167,14 @@ class ImportReportRecordsTest(TestCase):
             ],
         )
 
-    def test_import_allows_duplicates(self):
+    def test_import_skips_duplicates(self):
         self.client.force_login(self.user)
         url = reverse("core:import_report_records", args=[self.report.pk])
         self.client.post(url)
         self.assertEqual(LegacyRecruitmentRecord.objects.count(), 1)
-        # Second call should create a duplicate record
+        # Second call should not create a duplicate record
         self.client.post(url)
-        self.assertEqual(LegacyRecruitmentRecord.objects.count(), 2)
+        self.assertEqual(LegacyRecruitmentRecord.objects.count(), 1)
 
     def test_import_arabic_headers(self):
         """Ensure Arabic column names are mapped correctly."""
