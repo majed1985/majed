@@ -88,26 +88,41 @@ EMPLOYEE_COLUMN_MAP: dict[str, list[str]] = {
 # أعمدة كشف السلامة لاستيراد السجلات القديمة
 # ------------------------------------------------------------------------------
 LEGACY_COLUMN_MAP = {
-    "EMP NO": "emp_id",
-    "Emp ID": "emp_id",
-    "Emp. ID": "emp_id",
-    "Employee ID": "emp_id",
+    # English headers (مطابقة لما ظهر في ملفك الحالي)
     "Employees": "emp_id",
+    "Emp. ID": "emp_id",
+    "Emp ID": "emp_id",
+    "EMP NO": "emp_id",
+    "Employee ID": "emp_id",
     "emp.id": "emp_id",
+
+    "Name (Arabic)": "name_ar",
     "Name Arabic": "name_ar",
     "Name": "name_ar",
     "name.(arabic)": "name_ar",
+
+    "Name (English)": "name_en",
     "Name English": "name_en",
     "name.(english)": "name_en",
+
+    "Passport No.": "passport_no",
     "Passport No": "passport_no",
     "passport.no": "passport_no",
+
     "Nationality": "nationality",
+
+    "Profession": "profession",
     "Actual Profession": "profession",
     "profession": "profession",
+
     "Sponsor Name": "sponsor",
     "Spensor": "sponsor",
     "Spensor Name": "sponsor",
     "sponsor": "sponsor",
+
+    "Evaliuation": "evaluation",  # <-- تم التعديل هنا
+    "Evaluation": "evaluation",   # <-- يفضل إبقاء الاثنين للاحتياط
+
     # Arabic headers
     "الرقم الوظيفي": "emp_id",
     "الاسم عربي": "name_ar",
@@ -116,11 +131,10 @@ LEGACY_COLUMN_MAP = {
     "الجنسية": "nationality",
     "المهنة": "profession",
     "اسم الكفيل": "sponsor",
-    "اسبنسور": "sponsor",
-    "الاسبنسور": "sponsor",
-    "سبونسر": "sponsor",
-    "السبونسر": "sponsor",
+    "Sponsor": "sponsor",
+    "sponsor": "sponsor",    # أضف هذا السطر
 }
+
 
 INVISIBLE_CHARS = {"\u200f", "\ufeff"}
 
@@ -468,6 +482,24 @@ def edit_report(request, pk):
     return render(request, "core/edit_report.html", {"form": form, "report": rep})
 
 
+import re
+
+def clean_emp_id(val):
+    """
+    Extract only the digits from emp_id field to ensure a clean employee number.
+    """
+    if isinstance(val, str):
+        m = re.search(r"\d+", val)
+        return m.group(0) if m else val
+    elif isinstance(val, int):
+        return str(val)
+    elif hasattr(val, "__str__"):
+        m = re.search(r"\d+", str(val))
+        return m.group(0) if m else str(val)
+    return str(val)
+
+from django.db.models import Max
+
 @require_POST
 def import_report_records(request, pk):
     """Import selected report rows into LegacyRecruitmentRecord."""
@@ -483,9 +515,15 @@ def import_report_records(request, pk):
     existing_ids = set(
         LegacyRecruitmentRecord.objects.values_list("emp_id", flat=True)
     )
+
+    # جلب آخر رقم تسلسلي موجود في قاعدة البيانات، لو ما فيه سجلات يبدأ من 0
+    last_serial = LegacyRecruitmentRecord.objects.aggregate(
+        max_serial=Max("employees")
+    )["max_serial"] or 0
+
     added = 0
     for _, row in df.iterrows():
-        emp_id = str(row.get("emp_id", "")).strip()
+        emp_id = clean_emp_id(row.get("emp_id", ""))
         if not emp_id or emp_id in existing_ids:
             continue
         existing_ids.add(emp_id)
@@ -508,10 +546,14 @@ def import_report_records(request, pk):
 
         missing = [k for k in ["name_ar", "name_en", "profession"] if not row.get(k)]
         if missing:
-            print("\u26a0\ufe0f MISSING:", missing, "for", emp_id)
+            # تم تعديل السطر التالي لتحويل emp_id لنص
+            print("\u26a0\ufe0f MISSING:", missing, "for", str(emp_id))
+
+        # زيادة الرقم التسلسلي
+        last_serial += 1
 
         LegacyRecruitmentRecord.objects.create(
-            employees=emp_id,
+            employees=last_serial,  # الرقم التسلسلي الجديد
             emp_id=emp_id,
             name_ar=name_ar,
             name_en=name_en,
@@ -519,7 +561,15 @@ def import_report_records(request, pk):
             nationality=(str(row.get("nationality", "")).strip() or None),
             profession=profession,
             sponsor=(str(sponsor_value).strip() if sponsor_value not in (None, "") else None),
+
+            # الإضافات المطلوبة:
+            date=report.report_date,
+            month=report.report_date.strftime("%b"),         # مثال: Jan أو Feb
+            month_number=report.report_date.month,           # مثال: 1 أو 2
+            sector="حرمين" if report.is_haramain else "غير حرمين",
+            year=report.report_date.year,
         )
+
         added += 1
 
     if added:
@@ -527,6 +577,7 @@ def import_report_records(request, pk):
     else:
         messages.info(request, "لا توجد سجلات جديدة لإضافتها")
     return redirect("core:upload_employees")
+
 
 # ------------------------------------------------------------------------------
 # تقييم فردي سريع

@@ -148,14 +148,15 @@ class RecruitmentEmployee(models.Model):
         "اسم الكفيل", max_length=100, blank=True, null=True
     )
 
-    # تقييم ونتائج
-    evaluation = models.DecimalField(
-        "Evaluation", max_digits=5, decimal_places=2, null=True, blank=True
+        # تقييم ونتائج
+    evaluation = models.CharField(
+        "Evaluation", max_length=20, null=True, blank=True
     )
     result = models.CharField("Result", max_length=100, blank=True, null=True)
     result_expectations = models.CharField(
         "Result Expectations", max_length=100, blank=True, null=True
     )
+
 
     # حقول إضافية كانت موجودة مسبقاً
     start_date = models.DateField("تاريخ المباشرة", null=True, blank=True)
@@ -264,11 +265,9 @@ class RecruitmentReport(models.Model):
 class LegacyRecruitmentRecord(models.Model):
     """سجل قديم لبيانات الاستقدام."""
 
-    employees = models.CharField("Employees", max_length=100)
-    emp_id = models.CharField("Emp. ID", max_length=50)
-    evaluation = models.DecimalField(
-        "Evaliuation", max_digits=5, decimal_places=2, null=True, blank=True
-    )
+    employees = models.CharField("Employees", max_length=100, null=True, blank=True)
+    emp_id = models.CharField("Emp. ID", max_length=50, null=True, blank=True)
+    evaluation = models.CharField("Evaluation", max_length=50, null=True, blank=True)  # <-- حولناها لنصي
     result = models.CharField("Result", max_length=100, null=True, blank=True)
     result_expectations = models.CharField(
         "Result Expectations", max_length=100, null=True, blank=True
@@ -282,11 +281,9 @@ class LegacyRecruitmentRecord(models.Model):
         "Profession Group", max_length=100, null=True, blank=True
     )
     sponsor = models.CharField("Sponsor", max_length=100, null=True, blank=True)
-    date = models.DateField("Date", null=True, blank=True)
+    date = models.CharField("Date", max_length=20, null=True, blank=True)  # <-- حولناها لنصي
     month = models.CharField("Month", max_length=20, null=True, blank=True)
-    month_number = models.PositiveSmallIntegerField(
-        "Month Number", null=True, blank=True
-    )
+    month_number = models.CharField("Month Number", max_length=20, null=True, blank=True)  # <-- حولناها لنصي
     sector = models.CharField("Sector", max_length=100, null=True, blank=True)
     team_group = models.CharField("Team Group", max_length=100, null=True, blank=True)
     project = models.CharField("Project", max_length=100, null=True, blank=True)
@@ -297,7 +294,7 @@ class LegacyRecruitmentRecord(models.Model):
     director_of_management = models.CharField(
         "Director of Management", max_length=100, null=True, blank=True
     )
-    year = models.PositiveIntegerField("Year", null=True, blank=True)
+    year = models.CharField("Year", max_length=20, null=True, blank=True)  # <-- حولناها لنصي
 
     class Meta:
         verbose_name = "سجل استقدام قديم"
@@ -314,4 +311,3 @@ class LegacyRecruitmentRecord(models.Model):
                 if isinstance(val, str) and field.max_length and len(val) > field.max_length:
                     setattr(self, field.name, val[: field.max_length])
         super().save(*args, **kwargs)
-

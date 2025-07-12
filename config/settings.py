@@ -171,3 +171,4 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": "INFO"},
 }
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 100000  # أو أي رقم أكبر من عدد السجلات
