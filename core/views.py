@@ -89,7 +89,7 @@ EMPLOYEE_COLUMN_MAP: dict[str, list[str]] = {
 # ------------------------------------------------------------------------------
 LEGACY_COLUMN_MAP = {
     # English headers (مطابقة لما ظهر في ملفك الحالي)
-    "Employees": "emp_id",
+    "Employees": "employees",
     "Emp. ID": "emp_id",
     "Emp ID": "emp_id",
     "EMP NO": "emp_id",
@@ -443,6 +443,70 @@ def upload_employees(request):
         "month": month,
         "search": search,
     })
+
+
+def upload_legacy_records(request):
+    """Upload legacy employee spreadsheets to LegacyRecruitmentRecord."""
+
+    if request.method == "POST":
+        form = LegacyUploadForm(request.POST, request.FILES)
+        if not form.is_valid():
+            messages.error(request, form.errors.as_text())
+            return redirect("core:upload_legacy_records")
+
+        existing_ids = set(
+            LegacyRecruitmentRecord.objects.values_list("emp_id", flat=True)
+        )
+        added_total = 0
+
+        for excel in request.FILES.getlist("file"):
+            try:
+                df = pd.read_excel(excel)
+            except Exception as exc:
+                logger.exception("Failed reading %s", excel.name)
+                messages.error(request, f"{excel.name}: {exc}")
+                continue
+
+            df.columns = [_clean_header(c) for c in df.columns]
+            df.rename(columns=LEGACY_COLUMN_MAP, inplace=True)
+
+            sponsor_indices = [i for i, c in enumerate(df.columns) if c == "sponsor"]
+
+            for _, row in df.iterrows():
+                emp_id = clean_emp_id(row.get("emp_id", ""))
+                if not emp_id or emp_id in existing_ids:
+                    continue
+                existing_ids.add(emp_id)
+
+                sponsor_value = None
+                for idx in sponsor_indices:
+                    if idx < len(row):
+                        val = row.iloc[idx]
+                        if val not in ("", None) and not (isinstance(val, float) and pd.isna(val)):
+                            sponsor_value = val
+                            break
+
+                LegacyRecruitmentRecord.objects.create(
+                    employees=str(row.get("employees", "")).strip() or None,
+                    emp_id=emp_id,
+                    name_ar=(str(row.get("name_ar", "")).strip() or None),
+                    name_en=(str(row.get("name_en", "")).strip() or None),
+                    passport_no=(str(row.get("passport_no", "")).strip() or None),
+                    nationality=(str(row.get("nationality", "")).strip() or None),
+                    profession=(str(row.get("profession", "")).strip() or None),
+                    sponsor=(str(sponsor_value).strip() if sponsor_value not in (None, "") else None),
+                )
+                added_total += 1
+
+        if added_total:
+            messages.success(request, f"تمت إضافة {added_total} سجلًا بنجاح")
+        else:
+            messages.info(request, "لا توجد سجلات مضافة")
+        return redirect("core:upload_legacy_records")
+
+    form = LegacyUploadForm()
+    records = LegacyRecruitmentRecord.objects.order_by("-id")[:50]
+    return render(request, "core/upload_legacy_records.html", {"form": form, "records": records})
 
 # ------------------------------------------------------------------------------
 # مشاهد التقارير / الموظفين
