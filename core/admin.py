@@ -1,17 +1,7 @@
 # core/admin.py
 from django.contrib import admin
 
-from .models import (
-    Learner,
-    Department,
-    Section,
-    Nationality,
-    Sector,
-    RecruitmentEmployee,
-    EmployeeEvaluation,
-    RecruitmentReport,
-    LegacyRecruitmentRecord,
-)
+from .models import Learner
 
 
 @admin.register(Learner)
@@ -25,51 +15,15 @@ class LearnerAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Department)
-class DepartmentAdmin(admin.ModelAdmin):
-    list_display = ("name",)
-    search_fields = ("name",)
-
-
-@admin.register(Section)
-class SectionAdmin(admin.ModelAdmin):
-    list_display = ("department", "name")
-    list_filter = ("department",)
-    search_fields = ("name",)
-
-
-@admin.register(Nationality)
-class NationalityAdmin(admin.ModelAdmin):
-    list_display = ("name",)
-    search_fields = ("name",)
-
-
-@admin.register(Sector)
-class SectorAdmin(admin.ModelAdmin):
-    list_display = ("name",)
-    search_fields = ("name",)
-
-
-@admin.register(RecruitmentEmployee)
-class RecruitmentEmployeeAdmin(admin.ModelAdmin):
-    list_display = ("name", "employee_number", "start_date", "final_score")
-    search_fields = ("name", "employee_number", "passport_number")
-
-
-@admin.register(EmployeeEvaluation)
-class EmployeeEvaluationAdmin(admin.ModelAdmin):
-    list_display = ("employee", "evaluator", "evaluated_at")
-    list_filter = ("evaluator",)
-
-
-@admin.register(RecruitmentReport)
-class RecruitmentReportAdmin(admin.ModelAdmin):
-    list_display = ("filename", "report_date", "uploaded_at")
-    search_fields = ("filename",)
-
-
-@admin.register(LegacyRecruitmentRecord)
-class LegacyRecruitmentRecordAdmin(admin.ModelAdmin):
-    list_display = ("emp_id", "name_ar", "year")
-    search_fields = ("emp_id", "name_ar", "name_en")
+# The following models were previously registered with the admin site but have
+# been removed as they are no longer managed through the Django admin
+# interface:
+# - Department
+# - Section
+# - Nationality
+# - Sector
+# - RecruitmentEmployee
+# - EmployeeEvaluation
+# - RecruitmentReport
+# - LegacyRecruitmentRecord
 
