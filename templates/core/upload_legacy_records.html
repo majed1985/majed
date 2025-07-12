@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}رفع كشوفات الموظفين{% endblock %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-6 text-center text-[#119383]">رفع كشوفات الموظفين</h1>
+<div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow">
+  <form method="post" enctype="multipart/form-data" class="space-y-4">
+    {% csrf_token %}
+    <div>
+      <label class="block mb-1 text-sm text-gray-600">{{ form.file.label }}</label>
+      {{ form.file }}
+      {{ form.file.errors }}
+    </div>
+    <button type="submit" class="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded">رفع</button>
+  </form>
+</div>
+{% if records %}
+  <h2 class="text-xl font-bold mt-8 mb-4 text-center">أحدث السجلات</h2>
+  <div class="overflow-x-auto bg-white rounded shadow mx-auto max-w-3xl">
+    <table class="min-w-full text-sm text-center">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-2 py-1">Emp. ID</th>
+          <th class="px-2 py-1">Name (Arabic)</th>
+          <th class="px-2 py-1">Nationality</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr class="odd:bg-gray-50">
+          <td class="px-2 py-1">{{ r.emp_id }}</td>
+          <td class="px-2 py-1">{{ r.name_ar|default:r.name_en }}</td>
+          <td class="px-2 py-1">{{ r.nationality }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+{% endblock %}
