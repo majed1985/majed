@@ -89,7 +89,7 @@ EMPLOYEE_COLUMN_MAP: dict[str, list[str]] = {
 # ------------------------------------------------------------------------------
 LEGACY_COLUMN_MAP = {
     # English headers (مطابقة لما ظهر في ملفك الحالي)
-    "Employees": "emp_id",
+    "Employees": "employees",
     "Emp. ID": "emp_id",
     "Emp ID": "emp_id",
     "EMP NO": "emp_id",
