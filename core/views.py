@@ -510,7 +510,8 @@ def import_report_records(request, pk):
     df = pd.DataFrame(report.rows)
     df.columns = [_clean_header(c) for c in df.columns]
     df.rename(columns=LEGACY_COLUMN_MAP, inplace=True)
-    print("\U0001fa84 columns:", df.columns.tolist())
+    # Safely convert the column index to a list for logging
+    print("\U0001fa84 columns:", list(df.columns))
 
     sponsor_indices = [i for i, col in enumerate(df.columns) if col == "sponsor"]
 
