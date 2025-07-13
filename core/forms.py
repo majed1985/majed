@@ -163,16 +163,6 @@ class RecruitmentReportForm(forms.Form):
     )
 
 
-class LegacyUploadForm(forms.Form):
-    """Upload legacy employee spreadsheets."""
-
-    file = MultipleFileField(
-        label="كشف الموظفين (Excel)",
-        widget=ClearableMultipleFileInput(
-            attrs={"class": "w-full border border-gray-300 rounded-md p-2"}
-        ),
-    )
-
 
 class RecruitmentReportEditForm(forms.ModelForm):
     class Meta:

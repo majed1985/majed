@@ -61,11 +61,6 @@ urlpatterns = [
 
     # استقدام الحديث
     path("recruitment/upload/", views.upload_employees, name="upload_employees"),
-    path(
-        "recruitment/upload-legacy/",
-        views.upload_legacy_records,
-        name="upload_legacy_records",
-    ),
     path("recruitment/report/<int:pk>/", views.report_detail, name="report_detail"),
     path("recruitment/report/<int:pk>/delete/", views.delete_report, name="delete_report"),
     path("recruitment/report/<int:pk>/edit/", views.edit_report, name="edit_report"),
