@@ -222,12 +222,65 @@ class DataFrame:
                     writer.writerow([r.get(c) for c in self._columns])
 
 
+def _read_xlsx(buf: BytesIO) -> "DataFrame":
+    """Minimal XLSX reader using only the standard library."""
+    import zipfile
+    import xml.etree.ElementTree as ET
+
+    ns = {"a": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+
+    with zipfile.ZipFile(buf) as z:
+        shared: list[str] = []
+        if "xl/sharedStrings.xml" in z.namelist():
+            xml_data = z.read("xl/sharedStrings.xml")
+            tree = ET.fromstring(xml_data)
+            for t in tree.findall(".//a:t", ns):
+                shared.append(t.text or "")
+
+        sheet_name = next(
+            (n for n in z.namelist() if n.startswith("xl/worksheets/")), None
+        )
+        if sheet_name is None:
+            return DataFrame([])
+
+        sheet = ET.fromstring(z.read(sheet_name))
+        rows = []
+        for row in sheet.findall("a:sheetData/a:row", ns):
+            values = []
+            for c in row.findall("a:c", ns):
+                v = c.find("a:v", ns)
+                val = v.text if v is not None else ""
+                if c.attrib.get("t") == "s" and val:
+                    idx = int(val)
+                    if 0 <= idx < len(shared):
+                        val = shared[idx]
+                values.append(val)
+            rows.append(values)
+
+    if not rows:
+        return DataFrame([])
+
+    headers = rows[0]
+    records = [dict(zip(headers, r)) for r in rows[1:]]
+    return DataFrame(records, headers)
+
+
 def read_excel(fp):
-    if hasattr(fp, 'read'):
-        data = fp.read().decode('utf-8').splitlines()
-        reader = csv.reader(data)
+    if hasattr(fp, "read"):
+        data = fp.read()
+        if isinstance(data, bytes) and data.startswith(b"PK"):
+            return _read_xlsx(BytesIO(data))
+        if isinstance(data, (bytes, bytearray)):
+            data = data.decode("utf-8")
+        reader = csv.reader(data.splitlines())
     else:
-        reader = csv.reader(open(fp, newline=''))
+        with open(fp, "rb") as fh:
+            data = fh.read()
+        if data.startswith(b"PK"):
+            return _read_xlsx(BytesIO(data))
+        data = data.decode("utf-8")
+        reader = csv.reader(data.splitlines())
+
     rows = list(reader)
     if not rows:
         return DataFrame([])
