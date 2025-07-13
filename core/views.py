@@ -522,7 +522,11 @@ def import_report_records(request, pk):
     # جلب آخر رقم تسلسلي موجود في قاعدة البيانات، لو ما فيه سجلات يبدأ من 0
     last_serial = LegacyRecruitmentRecord.objects.aggregate(
         max_serial=Max("employees")
-    )["max_serial"] or 0
+    )["max_serial"]
+    try:
+        last_serial = int(last_serial)
+    except (TypeError, ValueError):
+        last_serial = 0
 
     added = 0
     for _, row in df.iterrows():
@@ -556,7 +560,7 @@ def import_report_records(request, pk):
         last_serial += 1
 
         LegacyRecruitmentRecord.objects.create(
-            employees=last_serial,  # الرقم التسلسلي الجديد
+            employees=str(last_serial),  # الرقم التسلسلي الجديد
             emp_id=emp_id,
             name_ar=name_ar,
             name_en=name_en,
