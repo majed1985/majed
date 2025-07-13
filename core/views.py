@@ -48,6 +48,7 @@ EMPLOYEE_COLUMN_MAP: dict[str, list[str]] = {
     "employee_number": [
         "employee_number",
         "الرقم الوظيفي",
+        "Employees",
         "Emp. ID",
         "Emp ID",
         "EMP ID",
