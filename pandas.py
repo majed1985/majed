@@ -116,6 +116,21 @@ class DataFrame:
     def columns(self):
         return self._columns
 
+    @columns.setter
+    def columns(self, new_columns):
+        old_columns = self._columns
+        if len(new_columns) != len(old_columns):
+            raise ValueError("Column length mismatch")
+        new_columns = list(new_columns)
+        self._records = [
+            {
+                new_col: row.get(old_col)
+                for old_col, new_col in zip(old_columns, new_columns)
+            }
+            for row in self._records
+        ]
+        self._columns = new_columns
+
     def __len__(self):
         return len(self._records)
 
