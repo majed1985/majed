@@ -255,12 +255,11 @@ class RecruitmentReport(models.Model):
 
     class Meta:
         unique_together = ("filename", "report_date", "is_haramain")
-        verbose_name = "كشف استقدام"
-        verbose_name_plural = "كشوف الاستقدام"
+        verbose_name = "رفع كشف الموظفين"
+        verbose_name_plural = "رفع كشف الموظفين"
 
     def __str__(self) -> str:
         return f"{self.filename} - {self.report_date}"
-
 
 class LegacyRecruitmentRecord(models.Model):
     """سجل قديم لبيانات الاستقدام."""
