@@ -461,6 +461,22 @@ class UploadEmployeesHeaderCleaningTest(TestCase):
         emp = RecruitmentEmployee.objects.get(employee_number="5")
         self.assertEqual(emp.sponsor_name, "Kaf")
 
+    def test_import_name_with_parentheses_header(self):
+        """Ensure 'Name (Arabic)' header is recognized."""
+        url = reverse("core:upload_employees")
+
+        file = self._excel_file(
+            [{"employee_number": "6", "Name (Arabic)": "Sara"}]
+        )
+
+        self.client.post(
+            url,
+            {"report_date": "2024-01-01", "is_haramain": "false", "file": file},
+        )
+
+        emp = RecruitmentEmployee.objects.get(employee_number="6")
+        self.assertEqual(emp.name, "Sara")
+
 
 class ImportExactExcelCommandTest(TestCase):
     """Ensure direct import command cleans headers properly."""
