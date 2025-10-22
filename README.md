@@ -27,6 +27,16 @@ python manage.py migrate
 Failing to run migrations can lead to errors such as
 `ProgrammingError: column core_recruitmentemployee.final_score does not exist`.
 
+If Django reports conflicting migrations (for example::
+```
+CommandError: Conflicting migrations detected; multiple leaf nodes in the migration graph
+```
+resolve them with:
+```
+python manage.py makemigrations --merge
+python manage.py migrate
+```
+
 Ensure `DJANGO_SECRET_KEY` is set to a unique value in production to avoid using
 the default key from `settings.py`.
 
